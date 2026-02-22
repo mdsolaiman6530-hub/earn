@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Pro Earn Bot</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
+    <!-- Monetag SDK -->
+    <script src='//libtl.com/sdk.js' data-zone='10638824' data-sdk='show_10638824'></script>
+
+    <style>
+        body { background-color: var(--tg-theme-bg-color, #f3f4f6); color: var(--tg-theme-text-color, #000); padding-bottom: 75px; user-select: none; }
+        .tab-content { display: none; padding: 15px; animation: fadeIn 0.3s; }
+        .tab-content.active { display: block; }
+        .bottom-nav { background-color: var(--tg-theme-secondary-bg-color, #fff); border-top: 1px solid #e5e7eb; }
+        .nav-item { color: var(--tg-theme-hint-color, #6b7280); transition: 0.3s; }
+        .nav-item.active { color: var(--tg-theme-button-color, #3b82f6); transform: scale(1.1); }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        /* Spin Wheel CSS */
+        .wheel-container { position: relative; width: 200px; height: 200px; margin: 0 auto; border-radius: 50%; border: 5px solid #3b82f6; overflow: hidden; box-shadow: 0 0 15px rgba(59, 130, 246, 0.5); }
+        .wheel { width: 100%; height: 100%; background: conic-gradient(#fca5a5 0 60deg, #fcd34d 60deg 120deg, #86efac 120deg 180deg, #93c5fd 180deg 240deg, #c4b5fd 240deg 300deg, #f9a8d4 300deg 360deg); transition: transform 3s cubic-bezier(0.25, 0.1, 0.25, 1); }
+        .pointer { position: absolute; top: -10px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 15px solid transparent; border-right: 15px solid transparent; border-top: 25px solid #ef4444; z-index: 10; }
+    </style>
+</head>
+<body oncontextmenu="return false;">
+
+    <!-- Security Check -->
+    <div id="tg_warning" class="hidden h-screen flex flex-col items-center justify-center bg-red-600 text-white p-6 text-center z-[100] fixed w-full top-0">
+        <i class="fa-solid fa-triangle-exclamation text-6xl mb-4"></i>
+        <h1 class="text-2xl font-bold">Access Denied!</h1>
+        <p class="mt-2">Please open this app inside Telegram.</p>
+    </div>
+
+    <!-- HOME TAB -->
+    <div id="home" class="tab-content active">
+        <div class="bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-6 rounded-2xl shadow-lg text-center mb-5 relative overflow-hidden">
+            <h2 class="text-sm font-semibold uppercase tracking-wider opacity-80">Total Balance</h2>
+            <h1 class="text-5xl font-extrabold mt-2 drop-shadow-md"><span id="u_balance">0.00</span> <span class="text-3xl">৳</span></h1>
+            <p class="mt-2 text-sm bg-black bg-opacity-30 inline-block px-4 py-1 rounded-full border border-white border-opacity-20"><i class="fa-solid fa-medal"></i> Rank: <span id="u_rank" class="font-bold">Member</span></p>
+        </div>
+        
+        <div class="grid grid-cols-2 gap-4 mb-4">
+            <button onclick="claimDailyBonus()" class="bg-gradient-to-r from-green-400 to-green-600 text-white p-4 rounded-xl shadow text-center active:scale-95 transition">
+                <i class="fa-solid fa-gift text-2xl mb-1"></i>
+                <p class="font-bold">Daily Bonus</p>
+            </button>
+            <button onclick="switchTab('spin', document.getElementById('nav_spin'))" class="bg-gradient-to-r from-purple-400 to-purple-600 text-white p-4 rounded-xl shadow text-center active:scale-95 transition">
+                <i class="fa-solid fa-dharmachakra text-2xl mb-1"></i>
+                <p class="font-bold">Spin & Win</p>
+            </button>
+        </div>
+
+        <button onclick="window.open('https://t.me/+L9JHLXCQZadlYWRl', '_blank')" class="w-full bg-gray-800 text-white py-3 rounded-xl shadow-lg font-bold"><i class="fa-brands fa-telegram text-blue-400"></i> Join Support Group</button>
+    </div>
+
+    <!-- EARN TAB -->
+    <div id="earn" class="tab-content">
+        <h2 class="text-2xl font-extrabold mb-4 text-center">Watch & Earn</h2>
+        <div class="bg-white p-5 rounded-xl shadow-md mb-6 text-black border-l-4 border-blue-500">
+            <div class="flex justify-between mb-2"><span>Daily Limit:</span> <span id="e_limit" class="font-bold text-blue-600">0</span></div>
+            <div class="flex justify-between mb-2"><span>Completed:</span> <span id="e_completed" class="font-bold text-green-600">0</span></div>
+            <div class="flex justify-between"><span>Reward per Ad:</span> <span class="font-bold text-yellow-600"><span id="e_ad_reward">0.00</span> ৳</span></div>
+        </div>
+        <button id="btn_watch" onclick="watchAd()" class="w-full bg-blue-600 text-white py-4 rounded-xl font-bold text-lg shadow-lg hover:bg-blue-700 active:scale-95 transition">
+            <i class="fa-solid fa-play-circle text-xl"></i> Watch Ad Now
+        </button>
+        <div id="ad_timer" class="text-center mt-4 text-red-600 font-bold hidden bg-red-50 p-3 rounded-lg border border-red-200">
+            <i class="fa-solid fa-spinner fa-spin"></i> Please wait <span id="timer_sec" class="text-xl">15</span> seconds...
+        </div>
+    </div>
+
+    <!-- SPIN TAB -->
+    <div id="spin" class="tab-content">
+        <h2 class="text-2xl font-extrabold mb-4 text-center">Spin & Win</h2>
+        <div class="bg-white p-6 rounded-xl shadow-md text-black text-center mb-4">
+            <p class="text-sm text-gray-500 mb-4">Spins left today: <span id="spin_left" class="font-bold text-blue-600">0</span></p>
+            
+            <div class="wheel-container mb-6">
+                <div class="pointer"></div>
+                <div class="wheel" id="spin_wheel"></div>
+            </div>
+            
+            <button id="btn_spin" onclick="startSpin()" class="w-full bg-gradient-to-r from-pink-500 to-orange-500 text-white py-3 rounded-xl font-bold text-lg shadow-lg active:scale-95 transition">
+                SPIN NOW
+            </button>
+        </div>
+    </div>
+
+    <!-- TASK TAB -->
+    <div id="task" class="tab-content">
+        <h2 class="text-2xl font-extrabold mb-4 text-center">Extra Tasks</h2>
+        <div id="task_list" class="space-y-4">
+            <p class="text-center text-gray-500"><i class="fa-solid fa-circle-notch fa-spin"></i> Loading...</p>
+        </div>
+    </div>
+
+    <!-- REFER TAB -->
+    <div id="refer" class="tab-content">
+        <div class="bg-gradient-to-r from-indigo-500 to-purple-600 text-white p-6 rounded-xl shadow-lg mb-4 text-center">
+            <p class="text-sm opacity-80 uppercase tracking-wider">Total Referrals</p>
+            <h1 class="text-5xl font-extrabold mt-1 mb-3" id="r_total">0</h1>
+            <div class="bg-white text-indigo-800 p-2 rounded-lg inline-block text-xs font-bold mb-2 shadow-sm">
+                <i class="fa-solid fa-sack-dollar"></i> Commission Earned: <span id="r_earnings" class="text-green-600 text-sm">0.00</span> ৳
+            </div>
+            <div class="bg-black bg-opacity-20 p-2 rounded-lg text-sm">
+                Instant Reward: <span id="r_rate" class="font-bold text-yellow-300">0.00</span> ৳
+            </div>
+        </div>
+        
+        <div class="bg-blue-50 text-blue-800 p-4 rounded-xl shadow text-sm mb-4 border border-blue-200">
+            <h3 class="font-bold mb-2"><i class="fa-solid fa-circle-info"></i> Commission System</h3>
+            <ul class="list-disc pl-4 space-y-1">
+                <li><strong class="text-indigo-600">First 2 Referrals:</strong> You get <strong>5% lifetime commission</strong> on whatever they earn!</li>
+                <li><strong class="text-blue-600">Next Referrals:</strong> You get <strong>3% lifetime commission</strong> from your 3rd referral onwards!</li>
+                <li>Reach <strong class="text-yellow-600">10, 50 or 500</strong> referrals to unlock special <strong>Ranks (Bronze/Silver/Gold)</strong>.</li>
+            </ul>
+        </div>
+
+        <div class="bg-white p-4 rounded-xl shadow text-black">
+            <label class="block text-sm font-bold text-gray-700 mb-2">Your Invite Link</label>
+            <div class="flex bg-gray-100 rounded-lg overflow-hidden border border-gray-300">
+                <input type="text" id="ref_link" readonly class="w-full p-3 bg-transparent outline-none text-sm font-mono text-gray-600">
+                <button onclick="copyRef()" class="bg-blue-600 px-4 text-white hover:bg-blue-700"><i class="fa-solid fa-copy"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- LEADERBOARD TAB -->
+    <div id="leaderboard" class="tab-content">
+        <h2 class="text-2xl font-extrabold mb-4 text-center text-gray-800"><i class="fa-solid fa-trophy text-yellow-500"></i> Top 10 Leaders</h2>
+        <div class="bg-white rounded-xl shadow-md border border-gray-100 overflow-hidden text-black">
+            <ul id="lb_list" class="divide-y divide-gray-100">
+                <p class="text-center p-4 text-gray-500"><i class="fa-solid fa-spinner fa-spin"></i> Loading Top Users...</p>
+            </ul>
+        </div>
+    </div>
+
+    <!-- WALLET TAB -->
+    <div id="wallet" class="tab-content">
+        <h2 class="text-2xl font-extrabold mb-4 text-center">Withdraw Funds</h2>
+        <div class="bg-white p-5 rounded-xl shadow-md mb-4 text-black text-center border-t-4 border-green-500">
+            <p class="text-gray-500 font-semibold">Available Balance</p>
+            <h2 class="text-3xl font-extrabold text-green-600"><span id="w_balance">0.00</span> ৳</h2>
+        </div>
+        
+        <div class="bg-white p-5 rounded-xl shadow space-y-4 text-black">
+            <p class="text-sm text-center text-red-500 font-bold bg-red-50 p-2 rounded"><i class="fa-solid fa-circle-exclamation"></i> Min Withdraw: <span id="w_min">50</span> ৳</p>
+            
+            <!-- Withdraw Condition Alert -->
+            <div id="w_condition_box" class="bg-yellow-50 border border-yellow-200 p-3 rounded-lg text-xs text-center font-bold text-yellow-700">
+                ⚠️ First withdraw requires 2 active referrals.<br>You have: <span id="w_refs" class="text-lg">0</span> / 2
+            </div>
+            <div id="w_eligible_box" class="hidden bg-green-50 border border-green-200 p-3 rounded-lg text-xs text-center font-bold text-green-700">
+                ✅ No referral limit for you. You are eligible to withdraw!
+            </div>
+            
+            <div>
+                <label class="text-sm font-bold text-gray-700">Withdraw Amount (BDT)</label>
+                <input type="number" step="0.01" id="w_amount" placeholder="Enter Amount" class="w-full p-3 border rounded-lg bg-gray-50 focus:ring-2 focus:ring-blue-400 outline-none mt-1">
+            </div>
+            
+            <div>
+                <label class="text-sm font-bold text-gray-700">Payment Method</label>
+                <select id="w_method" class="w-full p-3 border rounded-lg bg-gray-50 focus:ring-2 focus:ring-blue-400 outline-none mt-1">
+                    <option value="bKash">bKash</option>
+                    <option value="Nagad">Nagad</option>
+                    <option value="Rocket">Rocket</option>
+                </select>
+            </div>
+
+            <div>
+                <label class="text-sm font-bold text-gray-700">Account Number</label>
+                <input type="number" id="w_number" placeholder="017XXXXXXXX" class="w-full p-3 border rounded-lg bg-gray-50 focus:ring-2 focus:ring-blue-400 outline-none mt-1">
+            </div>
+            
+            <button onclick="requestWithdraw()" class="w-full bg-green-600 hover:bg-green-700 text-white py-4 rounded-xl font-bold shadow-lg transition">Submit Request</button>
+        </div>
+    </div>
+
+    <!-- PROFILE TAB -->
+    <div id="profile" class="tab-content">
+        <div class="bg-white p-6 rounded-xl shadow-md mb-4 text-black text-center relative overflow-hidden">
+            <div class="absolute top-0 left-0 w-full h-16 bg-blue-600"></div>
+            <div class="relative z-10">
+                <div class="w-24 h-24 bg-gray-200 rounded-full mx-auto border-4 border-white shadow flex items-center justify-center text-4xl text-gray-400">
+                    <i class="fa-solid fa-user"></i>
+                </div>
+                <h2 class="text-xl font-extrabold mt-2 text-gray-800" id="p_name">User Name</h2>
+                <p class="text-gray-500 text-sm font-mono bg-gray-100 inline-block px-2 py-1 rounded mt-1">UID: <span id="p_uid">00000000</span></p>
+            </div>
+        </div>
+        <div class="space-y-3 text-black">
+            <input type="number" id="p_phone" placeholder="Phone Number" class="w-full p-3 border rounded-xl bg-white shadow-sm focus:ring-2 focus:ring-blue-500 outline-none">
+            <button onclick="saveProfile()" class="w-full bg-gray-800 text-white py-3 rounded-xl shadow font-bold hover:bg-gray-900">Save Profile</button>
+        </div>
+    </div>
+
+    <!-- BOTTOM NAVIGATION -->
+    <div class="fixed bottom-0 w-full bottom-nav flex justify-around py-2 text-[9px] font-bold shadow-[0_-4px_15px_rgba(0,0,0,0.05)] z-50 rounded-t-xl overflow-x-auto">
+        <div class="nav-item active flex flex-col items-center p-1 px-2" onclick="switchTab('home', this)"><i class="fa-solid fa-home text-[18px] mb-1"></i> HOME</div>
+        <div class="nav-item flex flex-col items-center p-1 px-2" onclick="switchTab('earn', this)"><i class="fa-solid fa-video text-[18px] mb-1"></i> ADS</div>
+        <div id="nav_spin" class="nav-item flex flex-col items-center p-1 px-2" onclick="switchTab('spin', this)"><i class="fa-solid fa-dharmachakra text-[18px] mb-1 text-purple-500"></i> SPIN</div>
+        <div class="nav-item flex flex-col items-center p-1 px-2" onclick="switchTab('task', this)"><i class="fa-solid fa-list-check text-[18px] mb-1"></i> TASK</div>
+        <div class="nav-item flex flex-col items-center p-1 px-2" onclick="switchTab('refer', this)"><i class="fa-solid fa-users text-[18px] mb-1"></i> REFER</div>
+        <div class="nav-item flex flex-col items-center p-1 px-2" onclick="switchTab('leaderboard', this)"><i class="fa-solid fa-trophy text-[18px] mb-1 text-yellow-500"></i> RANKS</div>
+        <div class="nav-item flex flex-col items-center p-1 px-2" onclick="switchTab('wallet', this)"><i class="fa-solid fa-wallet text-[18px] mb-1"></i> WALLET</div>
+        <div class="nav-item flex flex-col items-center p-1 px-2" onclick="switchTab('profile', this)"><i class="fa-solid fa-user text-[18px] mb-1"></i> PRO</div>
+    </div>
+
+    <script>
+        document.addEventListener('keydown', function(event) {
+            if (event.keyCode == 123 || (event.ctrlKey && event.shiftKey && event.keyCode == 73)) { return false; }
+        });
+
+        // === 1. FIREBASE CONFIGURATION ===
+        const firebaseConfig = {
+            apiKey: "AIzaSyC46aAfI7dLQXeDVbzqqR7DIOTagpcY_MY",
+            authDomain: "earnpop-559fc.firebaseapp.com",
+            projectId: "earnpop-559fc",
+            storageBucket: "earnpop-559fc.firebasestorage.app",
+            messagingSenderId: "558951328004",
+            appId: "1:558951328004:web:53a600316cea1733280851"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        // === 2. TELEGRAM INIT ===
+        const tg = window.Telegram.WebApp;
+        tg.expand();
+        tg.ready();
+
+        if (!tg.initDataUnsafe || !tg.initDataUnsafe.user) {
+            document.getElementById("tg_warning").classList.remove("hidden");
+        }
+
+        const user = tg.initDataUnsafe.user;
+        const refUid = tg.initDataUnsafe.start_param || null;
+        const botUsername = "earnpopbot"; 
+        
+        let userData = {};
+        let sysSettings = { ref_bonus: 4.00, ad_reward: 0.30, ad_limit: 20, min_with: 50, spin_limit: 5, daily_bonus: 1.00 };
+        const todayStr = new Date().toISOString().split('T')[0];
+        let notifiedSet = new Set(); 
+
+        // === 3. APP INITIALIZATION ===
+        async function initApp() {
+            if(!user) return;
+
+            db.collection("settings").doc("main").onSnapshot((doc) => {
+                if(doc.exists) {
+                    let d = doc.data();
+                    sysSettings = Object.assign(sysSettings, d);
+                    
+                    let lastMsg = localStorage.getItem("last_global_msg") || 0;
+                    if(d.global_msg && d.global_msg.time > lastMsg) {
+                        tg.showAlert(`📣 Announcement:\n\n${d.global_msg.text}`);
+                        localStorage.setItem("last_global_msg", d.global_msg.time);
+                    }
+                }
+                updateUI();
+                loadTasks();
+            });
+
+            const userRef = db.collection("users").doc(user.id.toString());
+            
+            try {
+                const doc = await userRef.get();
+                if (!doc.exists) {
+                    userData = { 
+                        uid: user.id.toString(), name: user.first_name, balance: 0.00, 
+                        watched_ads: 0, ads_date: todayStr, 
+                        referrals: 0, phone: "", ban: false, 
+                        spin_count: 0, spin_date: todayStr,
+                        last_bonus: "2000-01-01", completed_tasks: [],
+                        withdraw_count: 0, ref_earnings: 0.00
+                    };
+                    await userRef.set(userData);
+                    
+                    // Lifetime Commission Link Logic
+                    if (refUid && refUid !== user.id.toString()) {
+                        const refUserRef = db.collection("users").doc(refUid);
+                        refUserRef.get().then(refDoc => {
+                            if(refDoc.exists) {
+                                let refCount = refDoc.data().referrals || 0;
+                                let myRate = refCount < 2 ? 0.05 : 0.03; // First 2 give 5%, 3rd+ give 3%
+                                
+                                refUserRef.update({
+                                    balance: firebase.firestore.FieldValue.increment(sysSettings.ref_bonus),
+                                    referrals: firebase.firestore.FieldValue.increment(1)
+                                });
+
+                                userRef.update({ referred_by: refUid, comm_rate: myRate });
+                                userData.referred_by = refUid; userData.comm_rate = myRate;
+                            }
+                        });
+                    }
+                } else {
+                    userData = doc.data();
+                    if(!userData.completed_tasks) userData.completed_tasks = [];
+                    if(!userData.withdraw_count) userData.withdraw_count = 0;
+                    
+                    if(userData.ban) {
+                        document.body.innerHTML = "<div style='display:flex; height:100vh; align-items:center; justify-content:center; background:red; color:white; font-size:2rem; font-weight:bold; text-align:center;'>ACCOUNT BANNED!<br>Contact Admin.</div>";
+                        return;
+                    }
+                    if(userData.ads_date !== todayStr) { userData.watched_ads = 0; userData.ads_date = todayStr; userRef.update({ watched_ads: 0, ads_date: todayStr }); }
+                    if(userData.spin_date !== todayStr) { userData.spin_count = 0; userData.spin_date = todayStr; userRef.update({ spin_count: 0, spin_date: todayStr }); }
+                }
+                
+                userRef.onSnapshot(snap => { 
+                    userData = snap.data(); 
+                    if(!userData.completed_tasks) userData.completed_tasks = [];
+                    updateUI(); 
+                });
+
+                db.collection("withdrawals").where("uid", "==", userData.uid).where("notified", "==", false).onSnapshot(wSnap => {
+                    wSnap.forEach(wDoc => {
+                        if (notifiedSet.has(wDoc.id)) return;
+                        notifiedSet.add(wDoc.id);
+
+                        let w = wDoc.data();
+                        if (w.status === "approved") {
+                            tg.HapticFeedback.notificationOccurred('success');
+                            tg.showAlert(`✅ Payment Success!\nYour withdrawal of ${w.amountBDT} ৳ has been successfully paid.`);
+                            db.collection("withdrawals").doc(wDoc.id).update({ notified: true });
+                        } else if (w.status === "rejected") {
+                            tg.HapticFeedback.notificationOccurred('error');
+                            tg.showAlert(`❌ Payment Rejected!\nYour withdrawal of ${w.amountBDT} ৳ was canceled. Balance has been refunded.`);
+                            db.collection("withdrawals").doc(wDoc.id).update({ notified: true });
+                        }
+                    });
+                });
+            } catch(e) { console.log(e); }
+        }
+
+        function getRank(refs) {
+            if (refs >= 500) return "Diamond 💎";
+            if (refs >= 50) return "Silver 🥈";
+            if (refs >= 10) return "Bronze 🥉";
+            return "Member 🟢";
+        }
+
+        function updateUI() {
+            let bal = userData.balance || 0;
+            let refs = userData.referrals || 0;
+            let wCount = userData.withdraw_count || 0;
+            
+            document.getElementById("u_balance").innerText = bal.toFixed(2);
+            document.getElementById("u_rank").innerText = getRank(refs);
+            document.getElementById("e_limit").innerText = sysSettings.ad_limit;
+            document.getElementById("e_completed").innerText = userData.watched_ads || 0;
+            document.getElementById("e_ad_reward").innerText = (sysSettings.ad_reward || 0.30).toFixed(2);
+            
+            document.getElementById("r_total").innerText = refs;
+            document.getElementById("r_earnings").innerText = (userData.ref_earnings || 0).toFixed(2);
+            document.getElementById("r_rate").innerText = (sysSettings.ref_bonus || 4.00).toFixed(2);
+            document.getElementById("ref_link").value = `https://t.me/${botUsername}?start=${user.id}`;
+            
+            document.getElementById("w_balance").innerText = bal.toFixed(2);
+            document.getElementById("w_min").innerText = sysSettings.min_with;
+            
+            if(wCount > 0) {
+                document.getElementById("w_condition_box").classList.add("hidden");
+                document.getElementById("w_eligible_box").classList.remove("hidden");
+            } else {
+                document.getElementById("w_condition_box").classList.remove("hidden");
+                document.getElementById("w_eligible_box").classList.add("hidden");
+                document.getElementById("w_refs").innerText = refs;
+            }
+            
+            document.getElementById("p_name").innerText = userData.name;
+            document.getElementById("p_uid").innerText = userData.uid;
+            document.getElementById("p_phone").value = userData.phone || "";
+
+            let spinsLeft = sysSettings.spin_limit - (userData.spin_count || 0);
+            document.getElementById("spin_left").innerText = Math.max(0, spinsLeft);
+        }
+
+        function switchTab(tabId, el) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            el.classList.add('active');
+            tg.HapticFeedback.impactOccurred('light');
+            
+            if(tabId === 'leaderboard') loadLeaderboard();
+        }
+
+        // === COMMISSION PROCESSOR ===
+        function processCommission(amount) {
+            if(userData.referred_by && userData.comm_rate) {
+                let comm = amount * userData.comm_rate;
+                db.collection("users").doc(userData.referred_by).update({
+                    balance: firebase.firestore.FieldValue.increment(comm),
+                    ref_earnings: firebase.firestore.FieldValue.increment(comm)
+                }).catch(e=>{});
+            }
+        }
+
+        function claimDailyBonus() {
+            if(userData.last_bonus === todayStr) return tg.showAlert("You already claimed today's bonus! Come back tomorrow.");
+            db.collection("users").doc(user.id.toString()).update({
+                balance: firebase.firestore.FieldValue.increment(sysSettings.daily_bonus),
+                last_bonus: todayStr
+            }).then(() => {
+                tg.HapticFeedback.notificationOccurred('success');
+                tg.showAlert(`🎉 Claimed ${(sysSettings.daily_bonus).toFixed(2)} ৳ Daily Bonus!`);
+            });
+        }
+
+        // === 5. ADS SYSTEM ===
+        let isWatching = false;
+        function watchAd() {
+            if(isWatching) return;
+            if((userData.watched_ads || 0) >= sysSettings.ad_limit) return tg.showAlert("Daily ad limit reached!");
+            
+            isWatching = true;
+            if(typeof show_10638824 === 'function') { show_10638824().then(() => { adRewardSuccess(); }).catch(e => { startAdTimerFallback(); });
+            } else { startAdTimerFallback(); }
+        }
+
+        function adRewardSuccess() {
+            db.collection("users").doc(user.id.toString()).update({
+                balance: firebase.firestore.FieldValue.increment(sysSettings.ad_reward),
+                watched_ads: firebase.firestore.FieldValue.increment(1)
+            });
+            processCommission(sysSettings.ad_reward);
+            isWatching = false;
+            tg.HapticFeedback.notificationOccurred('success');
+            tg.showAlert(`Ad complete! +${(sysSettings.ad_reward).toFixed(2)} ৳.`);
+        }
+
+        function startAdTimerFallback() {
+            document.getElementById("btn_watch").classList.add("hidden"); document.getElementById("ad_timer").classList.remove("hidden");
+            let timeLeft = 15; document.getElementById("timer_sec").innerText = timeLeft;
+            let timer = setInterval(() => {
+                timeLeft--; document.getElementById("timer_sec").innerText = timeLeft;
+                if(timeLeft <= 0) {
+                    clearInterval(timer);
+                    document.getElementById("btn_watch").classList.remove("hidden"); document.getElementById("ad_timer").classList.add("hidden");
+                    adRewardSuccess();
+                }
+            }, 1000);
+        }
+
+        // === 6. SPIN & WIN ===
+        let isSpinning = false;
+        const spinRewards = [0.10, 0.50, 0, 1.00, 0.05, 0.20]; 
+        function startSpin() {
+            if(isSpinning) return;
+            if((userData.spin_count || 0) >= sysSettings.spin_limit) return tg.showAlert("No spins left for today!");
+
+            isSpinning = true; tg.HapticFeedback.impactOccurred('medium');
+            let randomDegree = Math.floor(Math.random() * 3600) + 360; 
+            let actualDegree = randomDegree % 360;
+            let wheel = document.getElementById("spin_wheel");
+            wheel.style.transform = `rotate(${randomDegree}deg)`;
+            
+            setTimeout(() => {
+                let slice = Math.floor(actualDegree / 60); let rewardIndex = (6 - slice) % 6; 
+                let reward = spinRewards[rewardIndex] || 0.10; 
+                
+                db.collection("users").doc(user.id.toString()).update({
+                    balance: firebase.firestore.FieldValue.increment(reward),
+                    spin_count: firebase.firestore.FieldValue.increment(1)
+                }).then(() => {
+                    if(reward > 0) processCommission(reward);
+                    wheel.style.transition = "none"; wheel.style.transform = `rotate(${actualDegree}deg)`;
+                    setTimeout(() => { wheel.style.transition = "transform 3s cubic-bezier(0.25, 0.1, 0.25, 1)"; }, 50);
+                    
+                    isSpinning = false;
+                    tg.HapticFeedback.notificationOccurred(reward > 0 ? 'success' : 'error');
+                    tg.showAlert(reward > 0 ? `🎉 You won ${reward.toFixed(2)} ৳!` : `😢 Ops! Better luck next time.`);
+                });
+            }, 3000);
+        }
+
+        // === 7. TASKS ===
+        function loadTasks() {
+            db.collection("tasks").get().then(snap => {
+                let html = ""; let hasTasks = false;
+                snap.forEach(doc => {
+                    let t = doc.data();
+                    if(userData.completed_tasks && userData.completed_tasks.includes(doc.id)) return; 
+                    
+                    hasTasks = true;
+                    html += `
+                    <div class="bg-white p-4 rounded-xl shadow border border-gray-100 flex justify-between items-center text-black">
+                        <div>
+                            <h3 class="font-bold text-gray-800">${t.title}</h3>
+                            <span class="text-xs bg-yellow-100 text-yellow-700 font-bold px-2 py-1 rounded-md mt-1 inline-block">${parseFloat(t.reward).toFixed(2)} ৳</span>
+                        </div>
+                        <button onclick="doTask('${doc.id}', '${t.link}', ${t.reward})" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-bold shadow-md transition active:scale-95">Start</button>
+                    </div>`;
+                });
+                document.getElementById("task_list").innerHTML = hasTasks ? html : "<p class='text-gray-500 text-center'>No new tasks available right now.</p>";
+            });
+        }
+        
+        function doTask(id, link, reward) {
+            tg.openLink(link); 
+            tg.showConfirm(`Did you complete the task? Verify to get ${reward} ৳.`, (ok) => {
+                if(ok) {
+                    tg.showAlert("Verifying task... please wait 5 seconds.");
+                    setTimeout(() => {
+                        db.collection("users").doc(user.id.toString()).update({
+                            balance: firebase.firestore.FieldValue.increment(parseFloat(reward)),
+                            completed_tasks: firebase.firestore.FieldValue.arrayUnion(id) 
+                        }).then(() => {
+                            processCommission(parseFloat(reward));
+                            tg.showAlert(`✅ Task Verified! +${parseFloat(reward).toFixed(2)} ৳.`);
+                            loadTasks(); 
+                        });
+                    }, 5000);
+                }
+            });
+        }
+
+        // === 8. LEADERBOARD ===
+        function loadLeaderboard() {
+            db.collection("users").orderBy("balance", "desc").limit(10).get().then(snap => {
+                let html = ""; let rank = 1;
+                snap.forEach(doc => {
+                    let u = doc.data();
+                    let crown = rank === 1 ? '👑' : (rank === 2 ? '🥈' : (rank === 3 ? '🥉' : rank));
+                    let isMe = u.uid === userData.uid ? "bg-blue-50 border-l-4 border-blue-500" : "";
+                    
+                    html += `
+                    <li class="flex justify-between items-center p-4 ${isMe}">
+                        <div class="flex items-center gap-3">
+                            <span class="text-lg font-black w-6 text-center ${rank<=3?'text-yellow-500':'text-gray-400'}">${crown}</span>
+                            <div class="flex flex-col">
+                                <span class="font-bold text-gray-800">${u.name}</span>
+                                <span class="text-[10px] text-gray-500 font-bold">${getRank(u.referrals || 0)}</span>
+                            </div>
+                        </div>
+                        <span class="text-sm font-bold text-green-600 bg-green-50 px-3 py-1 rounded-full">${(u.balance||0).toFixed(2)} ৳</span>
+                    </li>`;
+                    rank++;
+                });
+                document.getElementById("lb_list").innerHTML = html;
+            });
+        }
+
+        // === 9. WITHDRAW ===
+        function requestWithdraw() {
+            let reqAmount = parseFloat(document.getElementById("w_amount").value);
+            let method = document.getElementById("w_method").value;
+            let number = document.getElementById("w_number").value;
+            let refs = userData.referrals || 0;
+            let wCount = userData.withdraw_count || 0;
+            
+            if(!reqAmount || reqAmount <= 0) return tg.showAlert("Enter valid amount!");
+            if(reqAmount > userData.balance) return tg.showAlert("Not enough balance!");
+            if(number.length < 10) return tg.showAlert("Enter valid account number!");
+            if(reqAmount < sysSettings.min_with) return tg.showAlert(`Minimum withdraw is ${sysSettings.min_with} ৳!`);
+            
+            // Condition: First withdraw needs 2 referrals
+            if(wCount === 0 && refs < 2) return tg.showAlert("❌ You need at least 2 active referrals for your FIRST withdrawal!");
+
+            db.collection("users").doc(user.id.toString()).update({ 
+                balance: firebase.firestore.FieldValue.increment(-reqAmount),
+                withdraw_count: firebase.firestore.FieldValue.increment(1) // Mark as requested
+            });
+            
+            db.collection("withdrawals").add({
+                uid: userData.uid, name: userData.name, phone: userData.phone || "Not Provided", 
+                amountBDT: reqAmount, method: method, number: number, 
+                status: "pending", notified: false, timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            }).then(() => { 
+                tg.showAlert("✅ Withdraw request submitted!"); 
+                document.getElementById("w_amount").value = ""; document.getElementById("w_number").value = "";
+            });
+        }
+
+        function saveProfile() {
+            let phone = document.getElementById("p_phone").value;
+            db.collection("users").doc(user.id.toString()).update({ phone: phone }).then(() => tg.showAlert("✅ Profile Saved!"));
+        }
+
+        function copyRef() {
+            let copyText = document.getElementById("ref_link");
+            copyText.select(); document.execCommand("copy");
+            tg.HapticFeedback.notificationOccurred('success');
+            tg.showAlert("Link Copied!");
+        }
+
+        if(user) initApp();
+    </script>
+</body>
+</html>
