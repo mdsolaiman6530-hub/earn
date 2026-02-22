@@ -66,6 +66,19 @@
             <button onclick="switchTab('spin', document.getElementById('nav_spin'))" class="bg-gradient-to-r from-purple-400 to-purple-600 text-white p-4 rounded-xl shadow text-center active:scale-95 transition"><i class="fa-solid fa-dharmachakra text-2xl mb-1"></i><p class="font-bold text-sm">Spin & Win</p></button>
         </div>
 
+        <!-- 7 DAYS LOGIN WEEKLY BONUS PROGRESS -->
+        <div class="bg-white p-4 rounded-xl shadow border border-gray-100 mb-4 relative overflow-hidden">
+            <h3 class="font-bold text-gray-800 mb-1"><i class="fa-solid fa-calendar-check text-indigo-500"></i> সাপ্তাহিক লগিন বোনাস (১০ ৳)</h3>
+            <p class="text-[10px] text-gray-500 mb-2">টানা ৭ দিন অ্যাপে লগিন করে বোনাস ক্লেইম করুন!</p>
+            <div class="w-full bg-gray-200 rounded-full h-2.5 my-2">
+                <div id="login_progress" class="bg-indigo-500 h-2.5 rounded-full transition-all duration-500" style="width: 0%"></div>
+            </div>
+            <div class="flex justify-between items-center mt-2">
+                <span class="text-xs font-bold text-gray-600" id="login_progress_text">Day 0 / 7</span>
+                <button id="btn_claim_weekly" onclick="claimWeeklyBonus()" class="bg-gray-400 text-white text-xs px-4 py-2 rounded-lg font-bold transition" disabled><i class="fa-solid fa-lock"></i> Locked</button>
+            </div>
+        </div>
+
         <div class="bg-white p-4 rounded-xl shadow border border-gray-100 mb-4 flex items-center justify-between">
             <div class="flex items-center gap-3">
                 <div class="w-12 h-12 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-xl shadow-inner"><i class="fa-solid fa-users"></i></div>
@@ -80,9 +93,9 @@
         </div>
     </div>
 
-    <!-- NOTIFICATIONS TAB (NEW) -->
+    <!-- NOTIFICATIONS TAB (ALERTS) -->
     <div id="notify" class="tab-content">
-        <h2 class="text-2xl font-extrabold mb-4 text-center">Your Notifications</h2>
+        <h2 class="text-2xl font-extrabold mb-4 text-center">নোটিফিকেশন (Alerts)</h2>
         <div id="notification_list" class="space-y-3">
             <p class="text-center text-gray-400 text-sm mt-4"><i class="fa-solid fa-spinner fa-spin"></i> Checking alerts...</p>
         </div>
@@ -132,8 +145,32 @@
 
     <!-- TASK TAB -->
     <div id="task" class="tab-content">
-        <h2 class="text-2xl font-extrabold mb-4 text-center">Extra Tasks</h2>
-        <div id="task_list" class="space-y-4"><p class="text-center text-gray-500"><i class="fa-solid fa-circle-notch fa-spin"></i> Loading...</p></div>
+        <h2 class="text-2xl font-extrabold mb-4 text-center">Task Center</h2>
+        
+        <!-- PERMANENT DAILY TASKS -->
+        <div class="mb-6">
+            <h3 class="font-extrabold text-gray-700 mb-3 border-b pb-2"><i class="fa-solid fa-clock text-blue-500"></i> Daily Permanent Tasks</h3>
+            <div class="space-y-3">
+                <div class="bg-blue-50 p-4 rounded-xl border border-blue-100 flex justify-between items-center">
+                    <div>
+                        <h4 class="font-bold text-gray-800 text-sm">Visit Sponsor Website</h4>
+                        <span class="text-[10px] bg-yellow-200 text-yellow-800 font-bold px-2 py-0.5 rounded mt-1 inline-block">1.00 ৳</span>
+                    </div>
+                    <button id="btn_dt_1" onclick="doDailyTask(1, 'https://google.com', 1.00)" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-xs font-bold shadow active:scale-95 transition">Start</button>
+                </div>
+                <div class="bg-blue-50 p-4 rounded-xl border border-blue-100 flex justify-between items-center">
+                    <div>
+                        <h4 class="font-bold text-gray-800 text-sm">Join Official Channel</h4>
+                        <span class="text-[10px] bg-yellow-200 text-yellow-800 font-bold px-2 py-0.5 rounded mt-1 inline-block">0.50 ৳</span>
+                    </div>
+                    <button id="btn_dt_2" onclick="doDailyTask(2, 'https://t.me/telegram', 0.50)" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-xs font-bold shadow active:scale-95 transition">Start</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- EXTRA ADMIN TASKS -->
+        <h3 class="font-extrabold text-gray-700 mb-3 border-b pb-2"><i class="fa-solid fa-star text-orange-500"></i> Extra Sponsored Tasks</h3>
+        <div id="task_list" class="space-y-3"><p class="text-center text-gray-500"><i class="fa-solid fa-circle-notch fa-spin"></i> Loading...</p></div>
     </div>
 
     <!-- REFER TAB -->
@@ -145,6 +182,17 @@
                 <i class="fa-solid fa-sack-dollar"></i> Commission Earned: <span id="r_earnings" class="text-green-600 text-sm">0.00</span> ৳
             </div>
             <div class="bg-black bg-opacity-20 p-2 rounded-lg text-sm">Instant Reward: <span id="r_rate" class="font-bold text-yellow-300">0.00</span> ৳</div>
+        </div>
+
+        <!-- REFERRAL MILESTONE BONUS (5 REFS = 25 TK) -->
+        <div class="bg-white p-5 rounded-xl shadow border border-gray-100 mb-4">
+            <h3 class="font-extrabold text-gray-800 mb-1"><i class="fa-solid fa-gift text-green-500"></i> রেফারেল মাইলস্টোন বোনাস</h3>
+            <p class="text-xs text-gray-500 mb-3">প্রতি ৫টি রেফারের জন্য পান ২৫৳ স্পেশাল বোনাস!</p>
+            <div class="w-full bg-gray-200 rounded-full h-3 mb-2">
+                <div id="ref_progress" class="bg-green-500 h-3 rounded-full transition-all duration-500" style="width: 0%"></div>
+            </div>
+            <p class="text-[11px] font-bold text-right text-gray-600 mb-3" id="ref_progress_text">0 / 5</p>
+            <button id="btn_claim_ref" onclick="claimRefBonus()" class="w-full bg-gray-400 text-white py-3 rounded-xl font-bold transition" disabled><i class="fa-solid fa-lock"></i> Claim 25 ৳</button>
         </div>
         
         <div class="bg-blue-50 text-blue-800 p-4 rounded-xl shadow text-sm mb-4 border border-blue-200">
@@ -194,7 +242,7 @@
                 </select>
             </div>
             <div><label class="text-sm font-bold text-gray-700">Account Number</label><input type="number" id="w_number" placeholder="017XXXXXXXX" class="w-full p-3 border rounded-lg bg-gray-50 focus:ring-2 focus:ring-blue-400 outline-none mt-1"></div>
-            <button onclick="requestWithdraw()" class="w-full bg-green-600 hover:bg-green-700 text-white py-4 rounded-xl font-bold shadow-lg transition">Submit Request</button>
+            <button onclick="requestWithdraw()" class="w-full bg-green-600 hover:bg-green-700 text-white py-4 rounded-xl font-bold shadow-lg transition active:scale-95">Submit Request</button>
         </div>
     </div>
 
@@ -227,7 +275,7 @@
         </div>
     </div>
 
-    <!-- BOTTOM NAVIGATION (Horizontal Scrollable) -->
+    <!-- BOTTOM NAVIGATION -->
     <div class="fixed bottom-0 left-0 w-full bottom-nav flex py-2 text-[10px] font-bold shadow-[0_-4px_15px_rgba(0,0,0,0.05)] z-50 rounded-t-xl">
         <div class="nav-item active px-3" onclick="switchTab('home', this)"><i class="fa-solid fa-home text-[18px] mb-1"></i> HOME</div>
         <div class="nav-item px-3" onclick="switchTab('earn', this)"><i class="fa-solid fa-video text-[18px] mb-1"></i> ADS</div>
@@ -251,6 +299,7 @@
         
         let userData = {}; let sysSettings = { ref_bonus: 4.00, ad_reward: 0.30, ad_limit: 20, min_with: 100, spin_limit: 5, daily_bonus: 1.00, total_users: 150 };
         const todayStr = new Date().toISOString().split('T')[0];
+        let notifiedSet = new Set();
 
         async function initApp() {
             if(!user) return;
@@ -258,18 +307,11 @@
                 if(doc.exists) {
                     let d = doc.data(); sysSettings = Object.assign(sysSettings, d);
                     document.getElementById("u_total_members").innerText = (sysSettings.total_users || 0).toLocaleString();
-                    
-                    // Notice Board Update
-                    if(sysSettings.notice_board) {
-                        document.getElementById("notice_board_ui").classList.remove("hidden");
-                        document.getElementById("notice_text").innerText = sysSettings.notice_board;
-                    } else {
-                        document.getElementById("notice_board_ui").classList.add("hidden");
-                    }
+                    if(sysSettings.notice_board) { document.getElementById("notice_board_ui").classList.remove("hidden"); document.getElementById("notice_text").innerText = sysSettings.notice_board; } 
+                    else { document.getElementById("notice_board_ui").classList.add("hidden"); }
                 } updateUI(); loadTasks();
             });
-            loadLivePayouts();
-            loadNotifications();
+            loadLivePayouts(); loadNotifications();
             
             const userRef = db.collection("users").doc(user.id.toString());
             try {
@@ -277,8 +319,9 @@
                 if (!doc.exists) {
                     userData = { 
                         uid: user.id.toString(), name: user.first_name, balance: 0.00, watched_ads: 0, ads_date: todayStr, 
-                        referrals: 0, phone: "", birth_reg: "", dob: "", profile_pic: "", identity_reward_claimed: false,
-                        spin_count: 0, spin_date: todayStr, last_bonus: "2000-01-01", completed_tasks: [], withdraw_count: 0, ref_earnings: 0.00, total_withdrawn: 0
+                        referrals: 0, phone: "", birth_reg: "", dob: "", profile_pic: "", identity_reward_claimed: false, claimed_ref_bonuses: 0,
+                        spin_count: 0, spin_date: todayStr, last_bonus: "2000-01-01", completed_tasks: [], withdraw_count: 0, ref_earnings: 0.00, total_withdrawn: 0,
+                        login_days: 1, last_login_date: todayStr, daily_task_1: false, daily_task_2: false, daily_task_date: todayStr
                     };
                     await userRef.set(userData);
                     db.collection("settings").doc("main").set({ total_users: firebase.firestore.FieldValue.increment(1) }, {merge: true});
@@ -287,145 +330,118 @@
                         const refUserRef = db.collection("users").doc(refUid);
                         refUserRef.get().then(refDoc => {
                             if(refDoc.exists) {
-                                let myRate = 0.03; // Flat 3% Commission
-                                refUserRef.set({ balance: firebase.firestore.FieldValue.increment(sysSettings.ref_bonus), referrals: firebase.firestore.FieldValue.increment(1), uid: refUid }, { merge: true }).catch(e => console.error("Ref Error:", e));
-                                userRef.set({ referred_by: refUid, comm_rate: myRate }, { merge: true });
+                                refUserRef.set({ balance: firebase.firestore.FieldValue.increment(sysSettings.ref_bonus), referrals: firebase.firestore.FieldValue.increment(1), uid: refUid }, { merge: true }).catch(e=>{});
+                                userRef.set({ referred_by: refUid, comm_rate: 0.03 }, { merge: true });
                             }
                         });
                     }
                 } else {
                     userData = doc.data();
                     if(userData.ban) { document.body.innerHTML = "<div style='display:flex;height:100vh;align-items:center;justify-content:center;background:red;color:white;font-size:2rem;font-weight:bold;'>BANNED!</div>"; return; }
-                    if(userData.ads_date !== todayStr) userRef.update({ watched_ads: 0, ads_date: todayStr });
-                    if(userData.spin_date !== todayStr) userRef.update({ spin_count: 0, spin_date: todayStr });
+                    
+                    // Streak Logic & Daily Reset
+                    let updates = {}; let hasUpdates = false;
+                    let yesterday = new Date(); yesterday.setDate(yesterday.getDate() - 1); let yesterdayStr = yesterday.toISOString().split('T')[0];
+                    if (userData.last_login_date !== todayStr) {
+                        if (userData.last_login_date === yesterdayStr) updates.login_days = (userData.login_days || 0) + 1; else updates.login_days = 1;
+                        updates.last_login_date = todayStr; hasUpdates = true;
+                    }
+                    if (userData.daily_task_date !== todayStr) { updates.daily_task_1 = false; updates.daily_task_2 = false; updates.daily_task_date = todayStr; hasUpdates = true; }
+                    if (userData.ads_date !== todayStr) { updates.watched_ads = 0; updates.ads_date = todayStr; hasUpdates = true; }
+                    if (userData.spin_date !== todayStr) { updates.spin_count = 0; updates.spin_date = todayStr; hasUpdates = true; }
+                    if (hasUpdates) await userRef.update(updates);
                 }
                 userRef.onSnapshot(snap => { userData = snap.data(); updateUI(); });
+
+                // LIVE NOTIFICATION POPUPS FOR APPROVED/REJECTED
+                db.collection("withdrawals").where("uid", "==", user.id.toString()).where("notified", "==", false).onSnapshot(wSnap => {
+                    wSnap.forEach(wDoc => {
+                        if (notifiedSet.has(wDoc.id)) return; notifiedSet.add(wDoc.id); let w = wDoc.data();
+                        if (w.status === "approved") { tg.HapticFeedback.notificationOccurred('success'); tg.showAlert(`✅ টাকা সফলভাবে উইথড্র হয়েছে!\nআপনার ${w.amountBDT} ৳ পেমেন্ট সফলভাবে পাঠানো হয়েছে।`); db.collection("withdrawals").doc(wDoc.id).update({ notified: true }); } 
+                        else if (w.status === "rejected") { tg.HapticFeedback.notificationOccurred('error'); tg.showAlert(`❌ উইথড্র বাতিল!\nআপনার ${w.amountBDT} ৳ উইথড্র বাতিল করে ব্যালেন্সে ফেরত দেওয়া হয়েছে।`); db.collection("withdrawals").doc(wDoc.id).update({ notified: true }); }
+                    });
+                });
             } catch(e) { console.log(e); }
         }
 
         function getRank(refs) { if (refs >= 500) return "Diamond 💎"; if (refs >= 50) return "Silver 🥈"; if (refs >= 10) return "Bronze 🥉"; return "Member 🟢"; }
         
         function loadLivePayouts() {
-            db.collection("withdrawals").orderBy("timestamp", "desc").limit(20).onSnapshot(snap => {
-                let html = ""; let count = 0;
-                snap.forEach(doc => {
-                    let w = doc.data();
-                    if(w.status === "approved" && count < 6) {
-                        html += `<div class="flex justify-between items-center bg-gray-50 p-3 rounded-lg border border-gray-100 mb-2"><div class="flex items-center gap-3"><div class="w-8 h-8 bg-green-100 text-green-600 rounded-full flex items-center justify-center font-bold text-xs"><i class="fa-solid fa-check"></i></div><div><p class="font-bold text-gray-700 text-xs">${w.name.substring(0,10)}..</p><p class="text-[9px] text-gray-400 font-bold uppercase">${w.method}</p></div></div><span class="font-black text-green-600">${w.amountBDT.toFixed(2)} ৳</span></div>`;
-                        count++;
-                    }
-                });
-                document.getElementById("live_payouts").innerHTML = html || "<p class='text-center text-gray-400 italic text-xs py-2'>No recent payouts.</p>";
-            });
+            db.collection("withdrawals").orderBy("timestamp", "desc").limit(20).onSnapshot(snap => { let html = ""; let count = 0; snap.forEach(doc => { let w = doc.data(); if(w.status === "approved" && count < 6) { html += `<div class="flex justify-between items-center bg-gray-50 p-3 rounded-lg border border-gray-100 mb-2"><div class="flex items-center gap-3"><div class="w-8 h-8 bg-green-100 text-green-600 rounded-full flex items-center justify-center font-bold text-xs"><i class="fa-solid fa-check"></i></div><div><p class="font-bold text-gray-700 text-xs">${w.name.substring(0,10)}..</p><p class="text-[9px] text-gray-400 font-bold uppercase">${w.method}</p></div></div><span class="font-black text-green-600">${w.amountBDT.toFixed(2)} ৳</span></div>`; count++; } }); document.getElementById("live_payouts").innerHTML = html || "<p class='text-center text-gray-400 italic text-xs py-2'>No recent payouts.</p>"; });
         }
 
-        // LOAD PERSONAL NOTIFICATIONS
+        // LOAD ALERTS TAB
         function loadNotifications() {
             db.collection("withdrawals").where("uid", "==", user.id.toString()).onSnapshot(snap => {
                 let list = []; snap.forEach(doc => list.push(doc.data()));
-                list.sort((a,b) => (b.timestamp?.toMillis() || 0) - (a.timestamp?.toMillis() || 0)); // Client side sort
-
+                list.sort((a,b) => (b.timestamp?.toMillis() || 0) - (a.timestamp?.toMillis() || 0));
                 let html = "";
                 list.forEach(w => {
                     let icon = w.status === 'approved' ? '<i class="fa-solid fa-circle-check text-green-500 text-3xl"></i>' : (w.status === 'rejected' ? '<i class="fa-solid fa-circle-xmark text-red-500 text-3xl"></i>' : '<i class="fa-solid fa-clock text-yellow-500 text-3xl"></i>');
-                    let title = w.status === 'approved' ? 'Payout Successful' : (w.status === 'rejected' ? 'Payout Rejected' : 'Withdrawal Pending');
-                    let desc = w.status === 'approved' ? `Your withdrawal of ${w.amountBDT} ৳ via ${w.method} has been successfully paid.` : (w.status === 'rejected' ? `Your withdrawal of ${w.amountBDT} ৳ was canceled and refunded. Please check info.` : `Your request of ${w.amountBDT} ৳ via ${w.method} is currently being processed.`);
-
-                    html += `
-                    <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex items-start gap-4">
-                        <div class="mt-1">${icon}</div>
-                        <div><h4 class="font-bold text-gray-800">${title}</h4><p class="text-xs text-gray-500 mt-1">${desc}</p></div>
-                    </div>`;
+                    let title = w.status === 'approved' ? 'টাকা সফলভাবে উইথড্র হয়েছে!' : (w.status === 'rejected' ? 'উইথড্র বাতিল হয়েছে' : 'উইথড্র রিকোয়েস্ট সফল (পেন্ডিং)');
+                    let desc = w.status === 'approved' ? `আপনার ${w.amountBDT} ৳ উইথড্র সফলভাবে ${w.method} এ পাঠানো হয়েছে।` : (w.status === 'rejected' ? `আপনার ${w.amountBDT} ৳ রিকোয়েস্ট বাতিল করে ব্যালেন্সে ফেরত দেওয়া হয়েছে।` : `আপনার ${w.amountBDT} ৳ রিকোয়েস্ট এডমিনের অনুমোদনের অপেক্ষায় আছে।`);
+                    html += `<div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex items-start gap-4 mb-2"><div class="mt-1">${icon}</div><div><h4 class="font-bold text-gray-800">${title}</h4><p class="text-xs text-gray-500 mt-1">${desc}</p></div></div>`;
                 });
                 document.getElementById("notification_list").innerHTML = html || `<div class="text-center p-8 bg-gray-50 rounded-xl border border-gray-200"><i class="fa-solid fa-bell-slash text-4xl text-gray-300 mb-3"></i><p class="text-sm text-gray-500 font-bold">You have no notifications yet.</p></div>`;
             });
         }
 
         function updateUI() {
-            document.getElementById("u_balance").innerText = (userData.balance || 0).toFixed(2);
-            document.getElementById("u_rank").innerText = getRank(userData.referrals || 0);
-            document.getElementById("e_limit").innerText = sysSettings.ad_limit; document.getElementById("e_completed").innerText = userData.watched_ads || 0; document.getElementById("e_ad_reward").innerText = (sysSettings.ad_reward || 0.30).toFixed(2);
-            document.getElementById("r_total").innerText = parseInt(userData.referrals) || 0; 
-            document.getElementById("r_earnings").innerText = (userData.ref_earnings || 0).toFixed(2); document.getElementById("r_rate").innerText = (sysSettings.ref_bonus || 4.00).toFixed(2); document.getElementById("ref_link").value = `https://t.me/${botUsername}?start=${user.id}`;
-            document.getElementById("w_balance").innerText = (userData.balance || 0).toFixed(2); document.getElementById("w_min").innerText = sysSettings.min_with;
-            
-            document.getElementById("p_name").innerText = userData.name; document.getElementById("p_uid").innerText = userData.uid;
-            document.getElementById("p_phone").value = userData.phone || ""; document.getElementById("p_birth_reg").value = userData.birth_reg || ""; document.getElementById("p_dob").value = userData.dob || "";
-            if(userData.profile_pic) { document.getElementById("p_pic_preview").src = userData.profile_pic; document.getElementById("p_pic_preview").classList.remove("hidden"); document.getElementById("p_pic_icon").classList.add("hidden"); }
-            
-            let btnIdentity = document.getElementById("btn_save_identity"); let badgeIdentity = document.getElementById("identity_badge");
-            if(userData.identity_reward_claimed) { btnIdentity.innerText = "Update Info"; btnIdentity.classList.replace("bg-blue-600", "bg-gray-800"); btnIdentity.classList.replace("hover:bg-blue-700", "hover:bg-gray-900"); badgeIdentity.classList.add("hidden"); }
+            document.getElementById("u_balance").innerText = (userData.balance || 0).toFixed(2); document.getElementById("u_rank").innerText = getRank(userData.referrals || 0); document.getElementById("e_limit").innerText = sysSettings.ad_limit; document.getElementById("e_completed").innerText = userData.watched_ads || 0; document.getElementById("e_ad_reward").innerText = (sysSettings.ad_reward || 0.30).toFixed(2);
+            document.getElementById("r_total").innerText = parseInt(userData.referrals) || 0; document.getElementById("r_earnings").innerText = (userData.ref_earnings || 0).toFixed(2); document.getElementById("r_rate").innerText = (sysSettings.ref_bonus || 4.00).toFixed(2); document.getElementById("ref_link").value = `https://t.me/${botUsername}?start=${user.id}`; document.getElementById("w_balance").innerText = (userData.balance || 0).toFixed(2); document.getElementById("w_min").innerText = sysSettings.min_with;
+            document.getElementById("p_name").innerText = userData.name; document.getElementById("p_uid").innerText = userData.uid; document.getElementById("p_phone").value = userData.phone || ""; document.getElementById("p_birth_reg").value = userData.birth_reg || ""; document.getElementById("p_dob").value = userData.dob || ""; if(userData.profile_pic) { document.getElementById("p_pic_preview").src = userData.profile_pic; document.getElementById("p_pic_preview").classList.remove("hidden"); document.getElementById("p_pic_icon").classList.add("hidden"); }
+            if(userData.identity_reward_claimed) { let btn = document.getElementById("btn_save_identity"); btn.innerText = "Update Info"; btn.classList.replace("bg-blue-600", "bg-gray-800"); btn.classList.replace("hover:bg-blue-700", "hover:bg-gray-900"); document.getElementById("identity_badge").classList.add("hidden"); }
+            document.getElementById("spin_left").innerText = Math.max(0, (sysSettings.spin_limit || 5) - (userData.spin_count || 0)); if((userData.total_withdrawn || 0) >= 200) { document.getElementById("spin_condition").classList.replace("bg-yellow-50", "bg-green-50"); document.getElementById("spin_condition").classList.replace("text-yellow-700", "text-green-700"); document.getElementById("spin_condition").innerHTML = `<i class="fa-solid fa-unlock"></i> 10৳ Spin Reward Unlocked!`; }
 
-            document.getElementById("spin_left").innerText = Math.max(0, (sysSettings.spin_limit || 5) - (userData.spin_count || 0));
-            if((userData.total_withdrawn || 0) >= 200) { document.getElementById("spin_condition").classList.replace("bg-yellow-50", "bg-green-50"); document.getElementById("spin_condition").classList.replace("text-yellow-700", "text-green-700"); document.getElementById("spin_condition").innerHTML = `<i class="fa-solid fa-unlock"></i> 10৳ Spin Reward Unlocked!`; }
-        }
+            // 5 Referrals Milestone Bonus UI
+            let refCount = parseInt(userData.referrals) || 0; let claimedRefs = parseInt(userData.claimed_ref_bonuses) || 0;
+            let eligibleClaim = Math.floor(refCount / 5) - claimedRefs; let refProgress = refCount % 5;
+            if(eligibleClaim > 0) {
+                document.getElementById("ref_progress").style.width = "100%"; document.getElementById("ref_progress_text").innerText = "5 / 5 (Ready to Claim!)";
+                document.getElementById("btn_claim_ref").disabled = false; document.getElementById("btn_claim_ref").className = "w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-xl font-bold transition shadow active:scale-95"; document.getElementById("btn_claim_ref").innerHTML = "<i class='fa-solid fa-unlock'></i> Claim 25 ৳ Bonus";
+            } else {
+                document.getElementById("ref_progress").style.width = (refProgress * 20) + "%"; document.getElementById("ref_progress_text").innerText = refProgress + " / 5";
+                document.getElementById("btn_claim_ref").disabled = true; document.getElementById("btn_claim_ref").className = "w-full bg-gray-400 text-white py-3 rounded-xl font-bold transition"; document.getElementById("btn_claim_ref").innerHTML = `<i class='fa-solid fa-lock'></i> Need ${5 - refProgress} More`;
+            }
 
-        function switchTab(tabId, el) { 
-            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active')); 
-            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active')); 
-            document.getElementById(tabId).classList.add('active'); 
-            el.classList.add('active'); 
-            tg.HapticFeedback.impactOccurred('light'); 
-            if(tabId === 'leaderboard') loadLeaderboard(); 
-        }
+            // Weekly Login UI
+            let lDays = userData.login_days || 0; if(lDays > 7) lDays = 7;
+            document.getElementById("login_progress").style.width = ((lDays / 7) * 100) + "%"; document.getElementById("login_progress_text").innerText = `Day ${lDays} / 7`;
+            if (lDays >= 7) { document.getElementById("btn_claim_weekly").disabled = false; document.getElementById("btn_claim_weekly").className = "bg-indigo-600 text-white text-xs px-4 py-2 rounded-lg font-bold shadow active:scale-95"; document.getElementById("btn_claim_weekly").innerHTML = "<i class='fa-solid fa-gift'></i> Claim Now"; } 
+            else { document.getElementById("btn_claim_weekly").disabled = true; document.getElementById("btn_claim_weekly").className = "bg-gray-400 text-white text-xs px-4 py-2 rounded-lg font-bold"; document.getElementById("btn_claim_weekly").innerHTML = "<i class='fa-solid fa-lock'></i> Locked"; }
 
-        function saveIdentity() {
-            let phone = document.getElementById("p_phone").value; let nid = document.getElementById("p_birth_reg").value; let dob = document.getElementById("p_dob").value;
-            if(!nid || !dob) return tg.showAlert("❌ Please provide both Birth Registration/NID and Date of Birth!");
-            let updates = { phone: phone, birth_reg: nid, dob: dob };
-            if(!userData.identity_reward_claimed) { updates.balance = firebase.firestore.FieldValue.increment(2); updates.identity_reward_claimed = true; db.collection("users").doc(userData.uid).update(updates).then(() => { tg.HapticFeedback.notificationOccurred('success'); tg.showAlert("🎉 Amazing! You earned 2 ৳ bonus for verifying your identity!"); }); } 
-            else { db.collection("users").doc(userData.uid).update(updates).then(() => tg.showAlert("✅ Information Updated!")); }
+            // Permanent Daily Tasks UI Update
+            if(userData.daily_task_1) { let b1 = document.getElementById("btn_dt_1"); b1.disabled = true; b1.innerText = "Done"; b1.className = "bg-gray-400 text-white px-4 py-2 rounded-lg text-xs font-bold"; } else { let b1 = document.getElementById("btn_dt_1"); b1.disabled = false; b1.innerText = "Start"; b1.className = "bg-blue-600 text-white px-4 py-2 rounded-lg text-xs font-bold shadow active:scale-95"; }
+            if(userData.daily_task_2) { let b2 = document.getElementById("btn_dt_2"); b2.disabled = true; b2.innerText = "Done"; b2.className = "bg-gray-400 text-white px-4 py-2 rounded-lg text-xs font-bold"; } else { let b2 = document.getElementById("btn_dt_2"); b2.disabled = false; b2.innerText = "Start"; b2.className = "bg-blue-600 text-white px-4 py-2 rounded-lg text-xs font-bold shadow active:scale-95"; }
         }
 
-        function uploadProfilePic(event) {
-            let file = event.target.files[0]; if(!file) return; document.getElementById("p_uploading").classList.remove("hidden");
-            storage.ref('profile_pics/' + userData.uid).put(file).then(snap => snap.ref.getDownloadURL()).then(url => { db.collection("users").doc(userData.uid).update({ profile_pic: url }).then(() => { document.getElementById("p_uploading").classList.add("hidden"); tg.showAlert("✅ Photo Updated!"); }); }).catch(e => { document.getElementById("p_uploading").classList.add("hidden"); tg.showAlert("❌ Upload Failed!"); });
+        function switchTab(tabId, el) { document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active')); document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active')); document.getElementById(tabId).classList.add('active'); el.classList.add('active'); tg.HapticFeedback.impactOccurred('light'); if(tabId === 'leaderboard') loadLeaderboard(); }
+
+        // BONUS CLAIMS (REF & WEEKLY)
+        function claimRefBonus() {
+            let eligibleClaim = Math.floor((userData.referrals || 0) / 5) - (userData.claimed_ref_bonuses || 0);
+            if (eligibleClaim > 0) { db.collection("users").doc(user.id.toString()).update({ balance: firebase.firestore.FieldValue.increment(25), claimed_ref_bonuses: firebase.firestore.FieldValue.increment(1) }).then(() => { tg.HapticFeedback.notificationOccurred('success'); tg.showAlert("🎉 ২৫ ৳ স্পেশাল রেফারেল বোনাস ক্লেইম করা হয়েছে!"); }); }
+        }
+        function claimWeeklyBonus() {
+            if ((userData.login_days || 0) >= 7) { db.collection("users").doc(user.id.toString()).update({ balance: firebase.firestore.FieldValue.increment(10), login_days: 0 }).then(() => { tg.HapticFeedback.notificationOccurred('success'); tg.showAlert("🎉 ১০ ৳ সাপ্তাহিক লগিন বোনাস ক্লেইম করা হয়েছে!"); }); }
         }
 
-        let isWatching = false;
-        function watchAd() {
-            if(isWatching) return; if((userData.watched_ads || 0) >= sysSettings.ad_limit) return tg.showAlert("Limit reached!");
-            isWatching = true; if(typeof show_10638824 === 'function') { show_10638824().then(() => adRewardSuccess()).catch(e => startAdTimerFallback()); } else startAdTimerFallback();
-        }
-        function adRewardSuccess() {
-            db.collection("users").doc(user.id.toString()).update({ balance: firebase.firestore.FieldValue.increment(sysSettings.ad_reward), watched_ads: firebase.firestore.FieldValue.increment(1) });
-            if(userData.referred_by && userData.comm_rate) db.collection("users").doc(userData.referred_by).update({ balance: firebase.firestore.FieldValue.increment(sysSettings.ad_reward * userData.comm_rate), ref_earnings: firebase.firestore.FieldValue.increment(sysSettings.ad_reward * userData.comm_rate) });
-            isWatching = false; tg.showAlert(`+${(sysSettings.ad_reward).toFixed(2)} ৳.`);
-        }
-        function startAdTimerFallback() {
-            document.getElementById("btn_watch").classList.add("hidden"); document.getElementById("ad_timer").classList.remove("hidden"); let timeLeft = 15; document.getElementById("timer_sec").innerText = timeLeft;
-            let timer = setInterval(() => { timeLeft--; document.getElementById("timer_sec").innerText = timeLeft; if(timeLeft <= 0) { clearInterval(timer); document.getElementById("btn_watch").classList.remove("hidden"); document.getElementById("ad_timer").classList.add("hidden"); adRewardSuccess(); } }, 1000);
-        }
+        function saveIdentity() { let phone = document.getElementById("p_phone").value; let nid = document.getElementById("p_birth_reg").value; let dob = document.getElementById("p_dob").value; if(!nid || !dob) return tg.showAlert("❌ Please provide both Birth Registration/NID and Date of Birth!"); let updates = { phone: phone, birth_reg: nid, dob: dob }; if(!userData.identity_reward_claimed) { updates.balance = firebase.firestore.FieldValue.increment(2); updates.identity_reward_claimed = true; db.collection("users").doc(userData.uid).update(updates).then(() => { tg.HapticFeedback.notificationOccurred('success'); tg.showAlert("🎉 Amazing! You earned 2 ৳ bonus for verifying your identity!"); }); } else { db.collection("users").doc(userData.uid).update(updates).then(() => tg.showAlert("✅ Information Updated!")); } }
+        function uploadProfilePic(event) { let file = event.target.files[0]; if(!file) return; document.getElementById("p_uploading").classList.remove("hidden"); storage.ref('profile_pics/' + userData.uid).put(file).then(snap => snap.ref.getDownloadURL()).then(url => { db.collection("users").doc(userData.uid).update({ profile_pic: url }).then(() => { document.getElementById("p_uploading").classList.add("hidden"); tg.showAlert("✅ Photo Updated!"); }); }).catch(e => { document.getElementById("p_uploading").classList.add("hidden"); tg.showAlert("❌ Upload Failed!"); }); }
 
-        let isSpinning = false; const spinRewards = [10, 7, 5, 3, 1, 0.50, 0.20, 0.20]; 
-        function startSpin() {
-            if(isSpinning) return; if((userData.spin_count || 0) >= (sysSettings.spin_limit || 5)) return tg.showAlert("No spins left!");
-            isSpinning = true; tg.HapticFeedback.impactOccurred('heavy');
-            let randIndex = Math.floor(Math.random() * 8); if(randIndex === 0 && (userData.total_withdrawn || 0) < 200) randIndex = 7; 
-            let targetDegree = (360 * 5) + 360 - (randIndex * 45 + 22.5); let wheel = document.getElementById("spin_wheel"); wheel.style.transform = `rotate(${targetDegree}deg)`;
-            setTimeout(() => {
-                let reward = spinRewards[randIndex];
-                db.collection("users").doc(user.id.toString()).update({ balance: firebase.firestore.FieldValue.increment(reward), spin_count: firebase.firestore.FieldValue.increment(1) }).then(() => { wheel.style.transition = "none"; wheel.style.transform = `rotate(${targetDegree % 360}deg)`; setTimeout(() => { wheel.style.transition = "transform 3.5s cubic-bezier(0.25, 0.1, 0.25, 1)"; }, 50); isSpinning = false; tg.HapticFeedback.notificationOccurred('success'); tg.showAlert(`🎉 You won ${reward} ৳!`); });
-            }, 3500);
-        }
+        let isWatching = false; function watchAd() { if(isWatching) return; if((userData.watched_ads || 0) >= sysSettings.ad_limit) return tg.showAlert("Limit reached!"); isWatching = true; if(typeof show_10638824 === 'function') { show_10638824().then(() => adRewardSuccess()).catch(e => startAdTimerFallback()); } else startAdTimerFallback(); } function adRewardSuccess() { db.collection("users").doc(user.id.toString()).update({ balance: firebase.firestore.FieldValue.increment(sysSettings.ad_reward), watched_ads: firebase.firestore.FieldValue.increment(1) }); if(userData.referred_by && userData.comm_rate) db.collection("users").doc(userData.referred_by).update({ balance: firebase.firestore.FieldValue.increment(sysSettings.ad_reward * userData.comm_rate), ref_earnings: firebase.firestore.FieldValue.increment(sysSettings.ad_reward * userData.comm_rate) }); isWatching = false; tg.showAlert(`+${(sysSettings.ad_reward).toFixed(2)} ৳.`); } function startAdTimerFallback() { document.getElementById("btn_watch").classList.add("hidden"); document.getElementById("ad_timer").classList.remove("hidden"); let timeLeft = 15; document.getElementById("timer_sec").innerText = timeLeft; let timer = setInterval(() => { timeLeft--; document.getElementById("timer_sec").innerText = timeLeft; if(timeLeft <= 0) { clearInterval(timer); document.getElementById("btn_watch").classList.remove("hidden"); document.getElementById("ad_timer").classList.add("hidden"); adRewardSuccess(); } }, 1000); }
 
-        function loadTasks() {
-            db.collection("tasks").get().then(snap => { let html = ""; let hasTasks = false; snap.forEach(doc => { let t = doc.data(); if(userData.completed_tasks && userData.completed_tasks.includes(doc.id)) return; hasTasks = true; html += `<div class="bg-white p-4 rounded-xl shadow border border-gray-100 flex justify-between items-center text-black"><div><h3 class="font-bold text-gray-800">${t.title}</h3><span class="text-xs bg-yellow-100 text-yellow-700 font-bold px-2 py-1 rounded-md mt-1 inline-block">${parseFloat(t.reward).toFixed(2)} ৳</span></div><button onclick="doTask('${doc.id}', '${t.link}', ${t.reward})" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-bold shadow-md">Start</button></div>`; }); document.getElementById("task_list").innerHTML = hasTasks ? html : "<p class='text-gray-500 text-center'>No tasks available.</p>"; });
-        }
-        function doTask(id, link, reward) {
-            try { tg.openLink(link); } catch(e) { window.open(link, '_blank'); }
-            tg.showConfirm(`Did you complete the task? Verify to get ${reward} ৳.`, (ok) => { if(ok) { tg.showAlert("Verifying task... please wait 5 seconds."); setTimeout(() => { db.collection("users").doc(user.id.toString()).update({ balance: firebase.firestore.FieldValue.increment(parseFloat(reward)), completed_tasks: firebase.firestore.FieldValue.arrayUnion(id) }).then(() => { tg.showAlert(`✅ Task Verified! +${parseFloat(reward).toFixed(2)} ৳.`); loadTasks(); }); }, 5000); } });
-        }
-        function loadLeaderboard() {
-            db.collection("users").orderBy("balance", "desc").limit(10).get().then(snap => { let html = ""; let rank = 1; snap.forEach(doc => { let u = doc.data(); let crown = rank === 1 ? '👑' : (rank === 2 ? '🥈' : (rank === 3 ? '🥉' : rank)); let isMe = u.uid === userData.uid ? "bg-blue-50 border-l-4 border-blue-500" : ""; html += `<li class="flex justify-between items-center p-4 ${isMe}"><div class="flex items-center gap-3"><span class="text-lg font-black w-6 text-center ${rank<=3?'text-yellow-500':'text-gray-400'}">${crown}</span><div class="flex flex-col"><span class="font-bold text-gray-800">${u.name}</span><span class="text-[10px] text-gray-500 font-bold">${getRank(u.referrals || 0)}</span></div></div><span class="text-sm font-bold text-green-600 bg-green-50 px-3 py-1 rounded-full">${(u.balance||0).toFixed(2)} ৳</span></li>`; rank++; }); document.getElementById("lb_list").innerHTML = html; });
-        }
-        function requestWithdraw() {
-            let reqAmount = parseFloat(document.getElementById("w_amount").value); let method = document.getElementById("w_method").value; let number = document.getElementById("w_number").value;
-            if(!reqAmount || reqAmount <= 0) return tg.showAlert("Enter valid amount!"); if(reqAmount > userData.balance) return tg.showAlert("Not enough balance!"); if(number.length < 10) return tg.showAlert("Enter valid account number!"); if(reqAmount < sysSettings.min_with) return tg.showAlert(`Minimum withdraw is ${sysSettings.min_with} ৳!`);
-            db.collection("users").doc(user.id.toString()).update({ balance: firebase.firestore.FieldValue.increment(-Math.abs(reqAmount)), withdraw_count: firebase.firestore.FieldValue.increment(1) });
-            db.collection("withdrawals").add({ uid: userData.uid, name: userData.name, phone: userData.phone || "Not Provided", amountBDT: Math.abs(reqAmount), method: method, number: number, status: "pending", notified: false, timestamp: firebase.firestore.FieldValue.serverTimestamp() }).then(() => { tg.showAlert("✅ Withdraw request submitted!"); switchTab('notify', document.querySelector('.nav-item:nth-child(8)')); document.getElementById("w_amount").value = ""; document.getElementById("w_number").value = ""; });
-        }
-        function claimDailyBonus() { if(userData.last_bonus === todayStr) return tg.showAlert("Already claimed today!"); db.collection("users").doc(user.id.toString()).update({ balance: firebase.firestore.FieldValue.increment(sysSettings.daily_bonus), last_bonus: todayStr }); tg.showAlert(`🎉 Claimed Daily Bonus!`); }
+        let isSpinning = false; const spinRewards = [10, 7, 5, 3, 1, 0.50, 0.20, 0.20]; function startSpin() { if(isSpinning) return; if((userData.spin_count || 0) >= (sysSettings.spin_limit || 5)) return tg.showAlert("No spins left!"); isSpinning = true; tg.HapticFeedback.impactOccurred('heavy'); let randIndex = Math.floor(Math.random() * 8); if(randIndex === 0 && (userData.total_withdrawn || 0) < 200) randIndex = 7; let targetDegree = (360 * 5) + 360 - (randIndex * 45 + 22.5); let wheel = document.getElementById("spin_wheel"); wheel.style.transform = `rotate(${targetDegree}deg)`; setTimeout(() => { let reward = spinRewards[randIndex]; db.collection("users").doc(user.id.toString()).update({ balance: firebase.firestore.FieldValue.increment(reward), spin_count: firebase.firestore.FieldValue.increment(1) }).then(() => { wheel.style.transition = "none"; wheel.style.transform = `rotate(${targetDegree % 360}deg)`; setTimeout(() => { wheel.style.transition = "transform 3.5s cubic-bezier(0.25, 0.1, 0.25, 1)"; }, 50); isSpinning = false; tg.HapticFeedback.notificationOccurred('success'); tg.showAlert(`🎉 You won ${reward} ৳!`); }); }, 3500); }
+
+        function doDailyTask(taskNum, link, reward) { try { tg.openLink(link); } catch(e) { window.open(link, '_blank'); } tg.showConfirm(`Did you complete the daily task? Verify to get ${reward} ৳.`, (ok) => { if(ok) { tg.showAlert("Verifying task... please wait 5 seconds."); setTimeout(() => { let updates = { balance: firebase.firestore.FieldValue.increment(parseFloat(reward)) }; updates[`daily_task_${taskNum}`] = true; db.collection("users").doc(user.id.toString()).update(updates).then(() => { tg.showAlert(`✅ Task Verified! +${parseFloat(reward).toFixed(2)} ৳.`); }); }, 5000); } }); }
+        
+        function loadTasks() { db.collection("tasks").get().then(snap => { let html = ""; let hasTasks = false; snap.forEach(doc => { let t = doc.data(); if(userData.completed_tasks && userData.completed_tasks.includes(doc.id)) return; hasTasks = true; html += `<div class="bg-white p-4 rounded-xl shadow border border-gray-100 flex justify-between items-center text-black"><div><h3 class="font-bold text-gray-800">${t.title}</h3><span class="text-xs bg-yellow-100 text-yellow-700 font-bold px-2 py-1 rounded-md mt-1 inline-block">${parseFloat(t.reward).toFixed(2)} ৳</span></div><button onclick="doTask('${doc.id}', '${t.link}', ${t.reward})" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-bold shadow-md">Start</button></div>`; }); document.getElementById("task_list").innerHTML = hasTasks ? html : "<p class='text-gray-500 text-center text-sm italic'>No extra tasks available right now.</p>"; }); }
+        function doTask(id, link, reward) { try { tg.openLink(link); } catch(e) { window.open(link, '_blank'); } tg.showConfirm(`Did you complete the task? Verify to get ${reward} ৳.`, (ok) => { if(ok) { tg.showAlert("Verifying task... please wait 5 seconds."); setTimeout(() => { db.collection("users").doc(user.id.toString()).update({ balance: firebase.firestore.FieldValue.increment(parseFloat(reward)), completed_tasks: firebase.firestore.FieldValue.arrayUnion(id) }).then(() => { tg.showAlert(`✅ Task Verified! +${parseFloat(reward).toFixed(2)} ৳.`); loadTasks(); }); }, 5000); } }); }
+        
+        function loadLeaderboard() { db.collection("users").orderBy("balance", "desc").limit(10).get().then(snap => { let html = ""; let rank = 1; snap.forEach(doc => { let u = doc.data(); let crown = rank === 1 ? '👑' : (rank === 2 ? '🥈' : (rank === 3 ? '🥉' : rank)); let isMe = u.uid === userData.uid ? "bg-blue-50 border-l-4 border-blue-500" : ""; html += `<li class="flex justify-between items-center p-4 ${isMe}"><div class="flex items-center gap-3"><span class="text-lg font-black w-6 text-center ${rank<=3?'text-yellow-500':'text-gray-400'}">${crown}</span><div class="flex flex-col"><span class="font-bold text-gray-800">${u.name}</span><span class="text-[10px] text-gray-500 font-bold">${getRank(u.referrals || 0)}</span></div></div><span class="text-sm font-bold text-green-600 bg-green-50 px-3 py-1 rounded-full">${(u.balance||0).toFixed(2)} ৳</span></li>`; rank++; }); document.getElementById("lb_list").innerHTML = html; }); }
+        
+        function requestWithdraw() { let reqAmount = parseFloat(document.getElementById("w_amount").value); let method = document.getElementById("w_method").value; let number = document.getElementById("w_number").value; if(!reqAmount || reqAmount <= 0) return tg.showAlert("Enter valid amount!"); if(reqAmount > userData.balance) return tg.showAlert("Not enough balance!"); if(number.length < 10) return tg.showAlert("Enter valid account number!"); if(reqAmount < sysSettings.min_with) return tg.showAlert(`Minimum withdraw is ${sysSettings.min_with} ৳!`); db.collection("users").doc(user.id.toString()).update({ balance: firebase.firestore.FieldValue.increment(-Math.abs(reqAmount)), withdraw_count: firebase.firestore.FieldValue.increment(1) }); db.collection("withdrawals").add({ uid: userData.uid, name: userData.name, phone: userData.phone || "Not Provided", amountBDT: Math.abs(reqAmount), method: method, number: number, status: "pending", notified: false, timestamp: firebase.firestore.FieldValue.serverTimestamp() }).then(() => { tg.showAlert("✅ উইথড্র রিকোয়েস্ট সফল! (পেন্ডিং)"); switchTab('notify', document.querySelector('.nav-item:nth-child(8)')); document.getElementById("w_amount").value = ""; document.getElementById("w_number").value = ""; }); }
+        function claimDailyBonus() { if(userData.last_bonus === todayStr) return tg.showAlert("Already claimed today!"); db.collection("users").doc(user.id.toString()).update({ balance: firebase.firestore.FieldValue.increment(sysSettings.daily_bonus), last_bonus: todayStr }).then(()=> { tg.HapticFeedback.notificationOccurred('success'); tg.showAlert(`🎉 Claimed Daily Bonus!`); }); }
         function copyRef() { let copyText = document.getElementById("ref_link"); copyText.select(); document.execCommand("copy"); tg.showAlert("Link Copied!"); }
 
         if(user) initApp();
