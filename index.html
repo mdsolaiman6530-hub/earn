@@ -13,6 +13,7 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
 
+    <!-- Monetag SDK -->
     <script src='//libtl.com/sdk.js' data-zone='10638824' data-sdk='show_10638824'></script>
 
     <style>
@@ -139,8 +140,8 @@
         <div class="bg-blue-50 text-blue-800 p-4 rounded-xl shadow text-sm mb-4 border border-blue-200">
             <h3 class="font-bold mb-2"><i class="fa-solid fa-circle-info"></i> Commission System</h3>
             <ul class="list-disc pl-4 space-y-1">
-                <li>First 2 Referrals: <strong>5% lifetime commission!</strong></li>
-                <li>Next Referrals: <strong>3% lifetime commission!</strong></li>
+                <li>Get an <strong>Instant Bonus</strong> for every invite!</li>
+                <li>Enjoy <strong>3% Lifetime Commission</strong> from all your referrals' earnings!</li>
             </ul>
         </div>
 
@@ -169,15 +170,11 @@
             <h2 class="text-3xl font-extrabold text-green-600"><span id="w_balance">0.00</span> ৳</h2>
         </div>
         <div class="bg-white p-5 rounded-xl shadow space-y-4 text-black">
-            <p class="text-sm text-center text-red-500 font-bold bg-red-50 p-2 rounded"><i class="fa-solid fa-circle-exclamation"></i> Min Withdraw: <span id="w_min">50</span> ৳</p>
+            <p class="text-sm text-center text-red-500 font-bold bg-red-50 p-2 rounded"><i class="fa-solid fa-circle-exclamation"></i> Min Withdraw: <span id="w_min">100</span> ৳</p>
             
-            <!-- Referral Target Box Fixed Display -->
-            <div id="w_condition_box" class="bg-yellow-50 border border-yellow-200 p-3 rounded-lg text-xs text-center font-bold text-yellow-700">
-                ⚠️ First withdraw requires 2 active referrals.<br>You have: <span id="w_refs" class="text-xl text-red-600 font-black px-1">0</span> / 2
-            </div>
-            
-            <div id="w_eligible_box" class="hidden bg-green-50 border border-green-200 p-3 rounded-lg text-xs text-center font-bold text-green-700">
-                ✅ No referral limit for you. You are eligible to withdraw!
+            <!-- Removed referral dependency notice -->
+            <div class="bg-green-50 border border-green-200 p-3 rounded-lg text-xs text-center font-bold text-green-700">
+                ✅ No hidden conditions! You are eligible to withdraw.
             </div>
             
             <div><label class="text-sm font-bold text-gray-700">Withdraw Amount (BDT)</label><input type="number" step="0.01" id="w_amount" placeholder="Enter Amount" class="w-full p-3 border rounded-lg bg-gray-50 focus:ring-2 focus:ring-blue-400 outline-none mt-1"></div>
@@ -242,7 +239,7 @@
         if (!tg.initDataUnsafe || !tg.initDataUnsafe.user) { document.getElementById("tg_warning").classList.remove("hidden"); }
         const user = tg.initDataUnsafe.user; const refUid = tg.initDataUnsafe.start_param || null; const botUsername = "earnpopbot"; 
         
-        let userData = {}; let sysSettings = { ref_bonus: 4.00, ad_reward: 0.30, ad_limit: 20, min_with: 50, spin_limit: 5, daily_bonus: 1.00, total_users: 150 };
+        let userData = {}; let sysSettings = { ref_bonus: 4.00, ad_reward: 0.30, ad_limit: 20, min_with: 100, spin_limit: 5, daily_bonus: 1.00, total_users: 150 };
         const todayStr = new Date().toISOString().split('T')[0];
 
         async function initApp() {
@@ -267,14 +264,13 @@
                     await userRef.set(userData);
                     db.collection("settings").doc("main").set({ total_users: firebase.firestore.FieldValue.increment(1) }, {merge: true});
                     
-                    // NEW USER REFERRAL REGISTRATION (100% Guaranteed Logic)
+                    // Referral Registration Logic (Fixed 3% Commission)
                     if (refUid && refUid !== user.id.toString()) {
                         const refUserRef = db.collection("users").doc(refUid);
                         refUserRef.get().then(refDoc => {
                             if(refDoc.exists) {
-                                let myRate = (refDoc.data().referrals || 0) < 2 ? 0.05 : 0.03; 
+                                let myRate = 0.03; // Flat 3% Commission
                                 
-                                // using set with merge true to bypass strict update rules
                                 refUserRef.set({ 
                                     balance: firebase.firestore.FieldValue.increment(sysSettings.ref_bonus), 
                                     referrals: firebase.firestore.FieldValue.increment(1),
@@ -316,16 +312,9 @@
             document.getElementById("u_rank").innerText = getRank(userData.referrals || 0);
             document.getElementById("e_limit").innerText = sysSettings.ad_limit; document.getElementById("e_completed").innerText = userData.watched_ads || 0; document.getElementById("e_ad_reward").innerText = (sysSettings.ad_reward || 0.30).toFixed(2);
             
-            // STRONG REFERRAL UI UPDATE 
-            let totalRefs = parseInt(userData.referrals) || 0;
-            document.getElementById("r_total").innerText = totalRefs; 
-            document.getElementById("w_refs").innerText = totalRefs; 
-            
+            document.getElementById("r_total").innerText = parseInt(userData.referrals) || 0; 
             document.getElementById("r_earnings").innerText = (userData.ref_earnings || 0).toFixed(2); document.getElementById("r_rate").innerText = (sysSettings.ref_bonus || 4.00).toFixed(2); document.getElementById("ref_link").value = `https://t.me/${botUsername}?start=${user.id}`;
             document.getElementById("w_balance").innerText = (userData.balance || 0).toFixed(2); document.getElementById("w_min").innerText = sysSettings.min_with;
-            
-            if((userData.withdraw_count || 0) > 0) { document.getElementById("w_condition_box").classList.add("hidden"); document.getElementById("w_eligible_box").classList.remove("hidden"); } 
-            else { document.getElementById("w_condition_box").classList.remove("hidden"); document.getElementById("w_eligible_box").classList.add("hidden"); }
             
             // Profile Updates
             document.getElementById("p_name").innerText = userData.name; document.getElementById("p_uid").innerText = userData.uid;
@@ -440,7 +429,8 @@
         function requestWithdraw() {
             let reqAmount = parseFloat(document.getElementById("w_amount").value); let method = document.getElementById("w_method").value; let number = document.getElementById("w_number").value;
             if(!reqAmount || reqAmount <= 0) return tg.showAlert("Enter valid amount!"); if(reqAmount > userData.balance) return tg.showAlert("Not enough balance!"); if(number.length < 10) return tg.showAlert("Enter valid account number!"); if(reqAmount < sysSettings.min_with) return tg.showAlert(`Minimum withdraw is ${sysSettings.min_with} ৳!`);
-            if((userData.withdraw_count || 0) === 0 && (userData.referrals || 0) < 2) return tg.showAlert("❌ You need at least 2 active referrals for FIRST withdrawal!");
+            
+            // Clean logic - no referral requirements
             db.collection("users").doc(user.id.toString()).update({ balance: firebase.firestore.FieldValue.increment(-Math.abs(reqAmount)), withdraw_count: firebase.firestore.FieldValue.increment(1) });
             db.collection("withdrawals").add({ uid: userData.uid, name: userData.name, phone: userData.phone || "Not Provided", amountBDT: Math.abs(reqAmount), method: method, number: number, status: "pending", notified: false, timestamp: firebase.firestore.FieldValue.serverTimestamp() }).then(() => { tg.showAlert("✅ Withdraw request submitted!"); document.getElementById("w_amount").value = ""; document.getElementById("w_number").value = ""; });
         }
