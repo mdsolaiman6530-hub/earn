@@ -19,7 +19,7 @@
         body { background-color: var(--tg-theme-bg-color, #f3f4f6); color: var(--tg-theme-text-color, #000); padding-bottom: 75px; user-select: none; }
         .tab-content { display: none; padding: 15px; animation: fadeIn 0.3s; }
         .tab-content.active { display: block; }
-        .bottom-nav { background-color: var(--tg-theme-secondary-bg-color, #fff); border-top: 1px solid #e5e7eb; white-space: nowrap; overflow-x: auto; padding-bottom: max(env(safe-area-inset-bottom), 8px); }
+        .bottom-nav { background-color: var(--tg-theme-secondary-bg-color, #fff); border-top: 1px solid #e5e7eb; white-space: nowrap; overflow-x: auto; padding-bottom: max(env(safe-area-inset-bottom), 8px); scroll-behavior: smooth; }
         .nav-item { color: var(--tg-theme-hint-color, #6b7280); transition: 0.3s; min-width: 60px; display: inline-flex; flex-direction: column; align-items: center; justify-content: center; }
         .nav-item.active { color: var(--tg-theme-button-color, #3b82f6); transform: scale(1.1); }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
@@ -217,8 +217,13 @@
         </div>
     </div>
 
+    <!-- SWIPE HINT ANIMATION -->
+    <div id="swipe_hint" class="fixed bottom-[75px] right-3 bg-gray-900 text-white text-[10px] font-bold px-3 py-1.5 rounded-full animate-bounce shadow-lg z-50 flex items-center gap-1.5 pointer-events-none transition-opacity duration-300">
+        <i class="fa-solid fa-hand-pointer text-yellow-400"></i> আরও মেনু দেখতে স্লাইড করুন <i class="fa-solid fa-arrow-right-long text-blue-400"></i>
+    </div>
+
     <!-- BOTTOM NAVIGATION -->
-    <div class="fixed bottom-0 left-0 w-full bottom-nav flex py-2 text-[10px] font-bold shadow-[0_-4px_15px_rgba(0,0,0,0.05)] z-50 rounded-t-xl">
+    <div id="bottom_nav_container" class="fixed bottom-0 left-0 w-full bottom-nav flex py-2 text-[10px] font-bold shadow-[0_-4px_15px_rgba(0,0,0,0.05)] z-50 rounded-t-xl overflow-x-auto">
         <div class="nav-item active px-3" onclick="switchTab('home', this)"><i class="fa-solid fa-home text-[18px] mb-1"></i> HOME</div>
         <div class="nav-item px-3" onclick="switchTab('earn', this)"><i class="fa-solid fa-video text-[18px] mb-1"></i> ADS</div>
         <div id="nav_spin" class="nav-item px-3" onclick="switchTab('spin', this)"><i class="fa-solid fa-dharmachakra text-[18px] mb-1 text-purple-500"></i> SPIN</div>
@@ -242,6 +247,23 @@
         const todayStr = new Date().toISOString().split('T')[0];
         let notifiedSet = new Set();
         const pIcons = { web: '<i class="fa-solid fa-globe text-blue-500"></i>', facebook: '<i class="fa-brands fa-facebook text-blue-600"></i>', youtube: '<i class="fa-brands fa-youtube text-red-600"></i>', telegram: '<i class="fa-brands fa-telegram text-blue-400"></i>' };
+
+        // স্লাইড হিন্ট সরানোর লজিক
+        function removeSwipeHint() {
+            let hint = document.getElementById('swipe_hint');
+            if(hint) {
+                hint.style.opacity = '0';
+                setTimeout(() => hint.remove(), 300);
+            }
+        }
+
+        // ইউজার স্ক্রল করলেই হিন্ট সরে যাবে
+        document.addEventListener("DOMContentLoaded", () => {
+            let navBar = document.getElementById('bottom_nav_container');
+            if(navBar) {
+                navBar.addEventListener('scroll', removeSwipeHint, { once: true });
+            }
+        });
 
         async function initApp() {
             if(!user) return;
@@ -320,7 +342,15 @@
             if (lDays >= 7) { document.getElementById("btn_claim_weekly").disabled = false; document.getElementById("btn_claim_weekly").className = "bg-indigo-600 text-white text-xs px-4 py-2 rounded-lg font-bold shadow active:scale-95"; document.getElementById("btn_claim_weekly").innerHTML = "<i class='fa-solid fa-gift'></i> Claim Now"; } else { document.getElementById("btn_claim_weekly").disabled = true; document.getElementById("btn_claim_weekly").className = "bg-gray-400 text-white text-xs px-4 py-2 rounded-lg font-bold"; document.getElementById("btn_claim_weekly").innerHTML = "<i class='fa-solid fa-lock'></i> Locked"; }
         }
 
-        function switchTab(tabId, el) { document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active')); document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active')); document.getElementById(tabId).classList.add('active'); el.classList.add('active'); tg.HapticFeedback.impactOccurred('light'); if(tabId === 'leaderboard') loadLeaderboard(); }
+        function switchTab(tabId, el) { 
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active')); 
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active')); 
+            document.getElementById(tabId).classList.add('active'); 
+            el.classList.add('active'); 
+            tg.HapticFeedback.impactOccurred('light'); 
+            removeSwipeHint(); // ক্লিক করলে স্লাইড হিন্ট চলে যাবে
+            if(tabId === 'leaderboard') loadLeaderboard(); 
+        }
 
         function claimRefBonus() { let eligibleClaim = Math.floor((userData.referrals || 0) / 5) - (userData.claimed_ref_bonuses || 0); if (eligibleClaim > 0) { db.collection("users").doc(user.id.toString()).update({ balance: firebase.firestore.FieldValue.increment(25), claimed_ref_bonuses: firebase.firestore.FieldValue.increment(1) }).then(() => { tg.HapticFeedback.notificationOccurred('success'); tg.showAlert("🎉 ২৫ ৳ স্পেশাল রেফারেল বোনাস ক্লেইম করা হয়েছে!"); }); } }
         function claimWeeklyBonus() { if ((userData.login_days || 0) >= 7) { db.collection("users").doc(user.id.toString()).update({ balance: firebase.firestore.FieldValue.increment(10), login_days: 0 }).then(() => { tg.HapticFeedback.notificationOccurred('success'); tg.showAlert("🎉 ১০ ৳ সাপ্তাহিক লগিন বোনাস ক্লেইম করা হয়েছে!"); }); } }
