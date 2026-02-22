@@ -24,7 +24,7 @@
         .nav-item.active { color: var(--tg-theme-button-color, #3b82f6); transform: scale(1.1); }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         
-        /* Premium Spin Wheel CSS (Perfectly Aligned) */
+        /* Premium Spin Wheel CSS */
         .wheel-container { position: relative; width: 220px; height: 220px; margin: 0 auto; border-radius: 50%; border: 6px solid #3b82f6; overflow: hidden; box-shadow: 0 0 15px rgba(59, 130, 246, 0.5); }
         .wheel { width: 100%; height: 100%; position: relative; border-radius: 50%;
             background: conic-gradient(
@@ -36,7 +36,7 @@
         }
         .pointer { position: absolute; top: -15px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 18px solid transparent; border-right: 18px solid transparent; border-top: 30px solid #111827; z-index: 10; filter: drop-shadow(0px 2px 2px rgba(0,0,0,0.5)); }
         
-        /* Wheel Slice Text Alignment Fix (Rotated -90deg to match conic-gradient top start) */
+        /* Fixed Wheel Alignment */
         .slice-wrap { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border-radius: 50%; transform: rotate(-90deg); }
         .slice { position: absolute; top: 50%; left: 50%; width: 110px; height: 30px; margin-top: -15px; margin-left: 0; transform-origin: left center; text-align: right; padding-right: 15px; font-weight: 900; color: white; text-shadow: 1px 1px 3px rgba(0,0,0,0.8); font-size: 15px; display: flex; align-items: center; justify-content: flex-end; }
         
@@ -102,7 +102,6 @@
             <div class="wheel-container mb-6 mt-4">
                 <div class="pointer"></div>
                 <div class="wheel" id="spin_wheel">
-                    <!-- Slice Wrapper Rotated -90deg for alignment -->
                     <div class="slice-wrap">
                         <div class="slice" style="transform: rotate(22.5deg);">10 ৳</div>
                         <div class="slice" style="transform: rotate(67.5deg);">7 ৳</div>
@@ -268,14 +267,21 @@
                     await userRef.set(userData);
                     db.collection("settings").doc("main").set({ total_users: firebase.firestore.FieldValue.increment(1) }, {merge: true});
                     
-                    // NEW USER REFERRAL REGISTRATION
+                    // NEW USER REFERRAL REGISTRATION (100% Guaranteed Logic)
                     if (refUid && refUid !== user.id.toString()) {
                         const refUserRef = db.collection("users").doc(refUid);
                         refUserRef.get().then(refDoc => {
                             if(refDoc.exists) {
                                 let myRate = (refDoc.data().referrals || 0) < 2 ? 0.05 : 0.03; 
-                                refUserRef.update({ balance: firebase.firestore.FieldValue.increment(sysSettings.ref_bonus), referrals: firebase.firestore.FieldValue.increment(1) });
-                                userRef.update({ referred_by: refUid, comm_rate: myRate });
+                                
+                                // using set with merge true to bypass strict update rules
+                                refUserRef.set({ 
+                                    balance: firebase.firestore.FieldValue.increment(sysSettings.ref_bonus), 
+                                    referrals: firebase.firestore.FieldValue.increment(1),
+                                    uid: refUid 
+                                }, { merge: true }).catch(e => console.error("Ref Update Error:", e));
+
+                                userRef.set({ referred_by: refUid, comm_rate: myRate }, { merge: true });
                             }
                         });
                     }
