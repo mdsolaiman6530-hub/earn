@@ -28,6 +28,10 @@
         .wheel-container { position: relative; width: 200px; height: 200px; margin: 0 auto; border-radius: 50%; border: 5px solid #3b82f6; overflow: hidden; box-shadow: 0 0 15px rgba(59, 130, 246, 0.5); }
         .wheel { width: 100%; height: 100%; background: conic-gradient(#fca5a5 0 60deg, #fcd34d 60deg 120deg, #86efac 120deg 180deg, #93c5fd 180deg 240deg, #c4b5fd 240deg 300deg, #f9a8d4 300deg 360deg); transition: transform 3s cubic-bezier(0.25, 0.1, 0.25, 1); }
         .pointer { position: absolute; top: -10px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 15px solid transparent; border-right: 15px solid transparent; border-top: 25px solid #ef4444; z-index: 10; }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
     </style>
 </head>
 <body oncontextmenu="return false;">
@@ -41,21 +45,47 @@
 
     <!-- HOME TAB -->
     <div id="home" class="tab-content active">
-        <div class="bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-6 rounded-2xl shadow-lg text-center mb-5 relative overflow-hidden">
+        <!-- Balance Card -->
+        <div class="bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-6 rounded-2xl shadow-lg text-center mb-4 relative overflow-hidden">
             <h2 class="text-sm font-semibold uppercase tracking-wider opacity-80">Total Balance</h2>
             <h1 class="text-5xl font-extrabold mt-2 drop-shadow-md"><span id="u_balance">0.00</span> <span class="text-3xl">৳</span></h1>
             <p class="mt-2 text-sm bg-black bg-opacity-30 inline-block px-4 py-1 rounded-full border border-white border-opacity-20"><i class="fa-solid fa-medal"></i> Rank: <span id="u_rank" class="font-bold">Member</span></p>
         </div>
         
+        <!-- Action Buttons -->
         <div class="grid grid-cols-2 gap-4 mb-4">
             <button onclick="claimDailyBonus()" class="bg-gradient-to-r from-green-400 to-green-600 text-white p-4 rounded-xl shadow text-center active:scale-95 transition">
                 <i class="fa-solid fa-gift text-2xl mb-1"></i>
-                <p class="font-bold">Daily Bonus</p>
+                <p class="font-bold text-sm">Daily Bonus</p>
             </button>
             <button onclick="switchTab('spin', document.getElementById('nav_spin'))" class="bg-gradient-to-r from-purple-400 to-purple-600 text-white p-4 rounded-xl shadow text-center active:scale-95 transition">
                 <i class="fa-solid fa-dharmachakra text-2xl mb-1"></i>
-                <p class="font-bold">Spin & Win</p>
+                <p class="font-bold text-sm">Spin & Win</p>
             </button>
+        </div>
+
+        <!-- NEW: Total Members Stats -->
+        <div class="bg-white p-4 rounded-xl shadow border border-gray-100 mb-4 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-12 h-12 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-xl shadow-inner">
+                    <i class="fa-solid fa-users"></i>
+                </div>
+                <div>
+                    <p class="text-xs text-gray-500 font-bold uppercase tracking-wide">Total Working</p>
+                    <h2 class="text-2xl font-black text-gray-800 leading-tight" id="u_total_members">---</h2>
+                </div>
+            </div>
+            <div class="text-green-500 text-xs font-bold animate-pulse flex items-center gap-1">
+                <div class="w-2 h-2 bg-green-500 rounded-full"></div> Live
+            </div>
+        </div>
+
+        <!-- NEW: Recent Payouts -->
+        <div class="bg-white p-4 rounded-xl shadow border border-gray-100 mb-4">
+            <h3 class="font-extrabold text-gray-800 mb-3 border-b border-gray-100 pb-2 text-sm"><i class="fa-solid fa-money-bill-transfer text-green-500 mr-1"></i> Live Recent Payouts</h3>
+            <div id="live_payouts" class="space-y-2 max-h-40 overflow-y-auto pr-1">
+                <p class="text-center text-gray-400 italic text-xs py-2"><i class="fa-solid fa-spinner fa-spin"></i> Loading latest payments...</p>
+            </div>
         </div>
 
         <button onclick="window.open('https://t.me/+L9JHLXCQZadlYWRl', '_blank')" class="w-full bg-gray-800 text-white py-3 rounded-xl shadow-lg font-bold"><i class="fa-brands fa-telegram text-blue-400"></i> Join Support Group</button>
@@ -246,7 +276,7 @@
         const botUsername = "earnpopbot"; 
         
         let userData = {};
-        let sysSettings = { ref_bonus: 4.00, ad_reward: 0.30, ad_limit: 20, min_with: 50, spin_limit: 5, daily_bonus: 1.00 };
+        let sysSettings = { ref_bonus: 4.00, ad_reward: 0.30, ad_limit: 20, min_with: 50, spin_limit: 5, daily_bonus: 1.00, total_users: 150 };
         const todayStr = new Date().toISOString().split('T')[0];
         let notifiedSet = new Set(); 
 
@@ -259,6 +289,9 @@
                     let d = doc.data();
                     sysSettings = Object.assign(sysSettings, d);
                     
+                    // Update Total Users UI
+                    document.getElementById("u_total_members").innerText = (sysSettings.total_users || 0).toLocaleString();
+
                     let lastMsg = localStorage.getItem("last_global_msg") || 0;
                     if(d.global_msg && d.global_msg.time > lastMsg) {
                         tg.showAlert(`📣 Announcement:\n\n${d.global_msg.text}`);
@@ -268,6 +301,8 @@
                 updateUI();
                 loadTasks();
             });
+
+            loadLivePayouts(); // Load live payouts for trust
 
             const userRef = db.collection("users").doc(user.id.toString());
             
@@ -280,9 +315,15 @@
                         referrals: 0, phone: "", ban: false, 
                         spin_count: 0, spin_date: todayStr,
                         last_bonus: "2000-01-01", completed_tasks: [],
-                        withdraw_count: 0, ref_earnings: 0.00
+                        withdraw_count: 0, ref_earnings: 0.00,
+                        joined_at: firebase.firestore.FieldValue.serverTimestamp() // Added Timestamp
                     };
                     await userRef.set(userData);
+                    
+                    // Global User Counter Increment
+                    db.collection("settings").doc("main").set({
+                        total_users: firebase.firestore.FieldValue.increment(1)
+                    }, {merge: true});
                     
                     // Lifetime Commission Link Logic
                     if (refUid && refUid !== user.id.toString()) {
@@ -290,7 +331,7 @@
                         refUserRef.get().then(refDoc => {
                             if(refDoc.exists) {
                                 let refCount = refDoc.data().referrals || 0;
-                                let myRate = refCount < 2 ? 0.05 : 0.03; // First 2 give 5%, 3rd+ give 3%
+                                let myRate = refCount < 2 ? 0.05 : 0.03; 
                                 
                                 refUserRef.update({
                                     balance: firebase.firestore.FieldValue.increment(sysSettings.ref_bonus),
@@ -338,7 +379,7 @@
                         }
                     });
                 });
-            } catch(e) { console.log(e); }
+            } catch(e) { console.log("Init Error: ", e); }
         }
 
         function getRank(refs) {
@@ -346,6 +387,36 @@
             if (refs >= 50) return "Silver 🥈";
             if (refs >= 10) return "Bronze 🥉";
             return "Member 🟢";
+        }
+
+        // === LIVE PAYOUTS FOR TRUST ===
+        function loadLivePayouts() {
+            // Fetching recent 20, filtering for approved only to avoid Firestore index requirement
+            db.collection("withdrawals")
+              .orderBy("timestamp", "desc")
+              .limit(20)
+              .onSnapshot(snap => {
+                  let html = "";
+                  let count = 0;
+                  snap.forEach(doc => {
+                      let w = doc.data();
+                      if(w.status === "approved" && count < 6) {
+                          html += `
+                          <div class="flex justify-between items-center bg-gray-50 p-3 rounded-lg border border-gray-100 mb-2">
+                              <div class="flex items-center gap-3">
+                                  <div class="w-8 h-8 bg-green-100 text-green-600 rounded-full flex items-center justify-center font-bold text-xs"><i class="fa-solid fa-check"></i></div>
+                                  <div>
+                                      <p class="font-bold text-gray-700 text-xs">${w.name.substring(0,10)}..</p>
+                                      <p class="text-[9px] text-gray-400 font-bold uppercase tracking-wide">${w.method}</p>
+                                  </div>
+                              </div>
+                              <span class="font-black text-green-600">${w.amountBDT.toFixed(2)} ৳</span>
+                          </div>`;
+                          count++;
+                      }
+                  });
+                  document.getElementById("live_payouts").innerHTML = html || "<p class='text-center text-gray-400 italic text-xs py-2'>No recent payouts.</p>";
+              });
         }
 
         function updateUI() {
@@ -468,10 +539,11 @@
                 let slice = Math.floor(actualDegree / 60); let rewardIndex = (6 - slice) % 6; 
                 let reward = spinRewards[rewardIndex] || 0.10; 
                 
-                db.collection("users").doc(user.id.toString()).update({
-                    balance: firebase.firestore.FieldValue.increment(reward),
-                    spin_count: firebase.firestore.FieldValue.increment(1)
-                }).then(() => {
+                // Bug fix: if reward is 0, we still update count but don't add balance.
+                let updateData = { spin_count: firebase.firestore.FieldValue.increment(1) };
+                if (reward > 0) updateData.balance = firebase.firestore.FieldValue.increment(reward);
+
+                db.collection("users").doc(user.id.toString()).update(updateData).then(() => {
                     if(reward > 0) processCommission(reward);
                     wheel.style.transition = "none"; wheel.style.transform = `rotate(${actualDegree}deg)`;
                     setTimeout(() => { wheel.style.transition = "transform 3s cubic-bezier(0.25, 0.1, 0.25, 1)"; }, 50);
@@ -506,7 +578,9 @@
         }
         
         function doTask(id, link, reward) {
-            tg.openLink(link); 
+            // Bug fix: cross compatibility for opening links safely
+            try { tg.openLink(link); } catch(e) { window.open(link, '_blank'); }
+            
             tg.showConfirm(`Did you complete the task? Verify to get ${reward} ৳.`, (ok) => {
                 if(ok) {
                     tg.showAlert("Verifying task... please wait 5 seconds.");
@@ -563,17 +637,19 @@
             if(number.length < 10) return tg.showAlert("Enter valid account number!");
             if(reqAmount < sysSettings.min_with) return tg.showAlert(`Minimum withdraw is ${sysSettings.min_with} ৳!`);
             
-            // Condition: First withdraw needs 2 referrals
             if(wCount === 0 && refs < 2) return tg.showAlert("❌ You need at least 2 active referrals for your FIRST withdrawal!");
 
+            // Bug fix validation
+            let actualDeduct = Math.abs(reqAmount);
+
             db.collection("users").doc(user.id.toString()).update({ 
-                balance: firebase.firestore.FieldValue.increment(-reqAmount),
-                withdraw_count: firebase.firestore.FieldValue.increment(1) // Mark as requested
+                balance: firebase.firestore.FieldValue.increment(-actualDeduct),
+                withdraw_count: firebase.firestore.FieldValue.increment(1) 
             });
             
             db.collection("withdrawals").add({
                 uid: userData.uid, name: userData.name, phone: userData.phone || "Not Provided", 
-                amountBDT: reqAmount, method: method, number: number, 
+                amountBDT: actualDeduct, method: method, number: number, 
                 status: "pending", notified: false, timestamp: firebase.firestore.FieldValue.serverTimestamp()
             }).then(() => { 
                 tg.showAlert("✅ Withdraw request submitted!"); 
