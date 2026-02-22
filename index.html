@@ -330,11 +330,11 @@
 
             let updates = { phone: phone, birth_reg: nid, dob: dob };
             if(!userData.identity_reward_claimed) {
-                updates.balance = firebase.firestore.FieldValue.increment(2);
+                updates.balance = firebase.firestore.FieldValue.increment(5);
                 updates.identity_reward_claimed = true;
                 db.collection("users").doc(userData.uid).update(updates).then(() => {
                     tg.HapticFeedback.notificationOccurred('success');
-                    tg.showAlert("🎉 Amazing! You earned 2 ৳ bonus for verifying your identity!");
+                    tg.showAlert("🎉 Amazing! You earned 5 ৳ bonus for verifying your identity!");
                 });
             } else {
                 db.collection("users").doc(userData.uid).update(updates).then(() => tg.showAlert("✅ Information Updated!"));
@@ -431,3 +431,4 @@
     </script>
 </body>
 </html>
+
